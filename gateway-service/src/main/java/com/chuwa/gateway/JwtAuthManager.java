@@ -29,15 +29,17 @@ public class JwtAuthManager implements ReactiveAuthenticationManager {
             JwtUtil.validateToken(token); // Validate JWT
             String encodedUserId = JwtUtil.getUserIdFromToken(token);
             log.info("encodedUserId: " + encodedUserId);
+
             UserSession userSession = redisUserSessionService.getUserSession(encodedUserId);
             log.info("userSession: " + userSession);
             if (userSession == null) {
-                return Mono.empty(); // Reject if session is not found
+                return Mono.just(new UsernamePasswordAuthenticationToken(null, null)); // Reject if session is not found
             }
 
             return Mono.just(new UsernamePasswordAuthenticationToken(userSession, token, userSession.getAuthorities()));
         } catch (JwtException e) {
-            return Mono.empty(); // Reject invalid token
+            log.warn("JWT Token invalid: " + e.getMessage());
+            return Mono.just(new UsernamePasswordAuthenticationToken(null, null)); // Reject invalid token
         }
     }
 }

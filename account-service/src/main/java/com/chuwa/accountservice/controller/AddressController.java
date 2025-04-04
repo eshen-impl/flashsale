@@ -26,8 +26,8 @@ public class AddressController {
     @PostMapping
     @Operation(summary = "Add new address for the current user.",
             description = "Required to be authenticated (have signed in).")
-    public ResponseEntity<AddressDTO> addAddress(@Valid @RequestBody AddressDTO addressDTO, Principal principal) {
-        UUID userId = UUID.fromString(principal.getName());
+    public ResponseEntity<AddressDTO> addAddress(@Valid @RequestBody AddressDTO addressDTO, @RequestHeader("X-User-Id") String userIdString) {
+        UUID userId = UUID.fromString(userIdString);
         AddressDTO createdAddress = addressService.addAddress(userId, addressDTO);
         return new ResponseEntity<>(createdAddress, HttpStatus.CREATED);
     }
@@ -35,8 +35,8 @@ public class AddressController {
     @GetMapping("/all")
     @Operation(summary = "Get all addresses for the current user.",
             description = "Required to be authenticated (have signed in).")
-    public ResponseEntity<List<AddressDTO>> getAddressesByUserId(Principal principal) {
-        UUID userId = UUID.fromString(principal.getName());
+    public ResponseEntity<List<AddressDTO>> getAddressesByUserId(@RequestHeader("X-User-Id") String userIdString) {
+        UUID userId = UUID.fromString(userIdString);
         List<AddressDTO> addresses = addressService.getAddressesByUserId(userId);
         return new ResponseEntity<>(addresses, HttpStatus.OK);
     }
@@ -44,8 +44,8 @@ public class AddressController {
     @GetMapping
     @Operation(summary = "Get a specific address for the current user.",
             description = "Required to be authenticated (have signed in).")
-    public ResponseEntity<AddressDTO> getAddressByUserIdAndAddressId(@RequestParam("addressId") Long addressId, Principal principal) {
-        UUID userId = UUID.fromString(principal.getName());
+    public ResponseEntity<AddressDTO> getAddressByUserIdAndAddressId(@RequestParam("addressId") Long addressId, @RequestHeader("X-User-Id") String userIdString) {
+        UUID userId = UUID.fromString(userIdString);
         AddressDTO address = addressService.getAddressByUserIdAndAddressId(userId, addressId);
         return new ResponseEntity<>(address, HttpStatus.OK);
     }
@@ -53,8 +53,8 @@ public class AddressController {
     @PutMapping
     @Operation(summary = "Update current user's one specific address. Pass in addressId and new values in the request body.",
             description = "Required to be authenticated (have signed in).")
-    public ResponseEntity<AddressDTO> updateAddress(@Valid @RequestBody AddressDTO addressDTO, Principal principal) {
-        UUID userId = UUID.fromString(principal.getName());
+    public ResponseEntity<AddressDTO> updateAddress(@Valid @RequestBody AddressDTO addressDTO, @RequestHeader("X-User-Id") String userIdString) {
+        UUID userId = UUID.fromString(userIdString);
         AddressDTO updatedAddress = addressService.updateAddress(userId, addressDTO);
         return new ResponseEntity<>(updatedAddress, HttpStatus.OK);
     }
@@ -62,8 +62,8 @@ public class AddressController {
     @DeleteMapping
     @Operation(summary = "Delete current user's one specific address.",
             description = "Required to be authenticated (have signed in).")
-    public ResponseEntity<Void> removeAddress(@RequestParam("addressId") Long addressId, Principal principal) {
-        UUID userId = UUID.fromString(principal.getName());
+    public ResponseEntity<Void> removeAddress(@RequestParam("addressId") Long addressId, @RequestHeader("X-User-Id") String userIdString) {
+        UUID userId = UUID.fromString(userIdString);
         addressService.removeAddress(userId, addressId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }

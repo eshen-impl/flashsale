@@ -5,10 +5,7 @@ import com.chuwa.accountservice.payload.SignUpRequestDTO;
 import com.chuwa.accountservice.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 import java.util.Map;
@@ -46,8 +43,8 @@ public class AuthController {
     @PostMapping("/sign-out")
     @Operation(summary = "Sign out",
                 description = "Remove user session from Redis.")
-    public ResponseEntity<String> signOut(Principal principal) {
-        UUID userId = UUID.fromString(principal.getName());
+    public ResponseEntity<String> signOut(@RequestHeader("X-User-Id") String userIdString) {
+        UUID userId = UUID.fromString(userIdString);
         authService.signOut(userId);
         return ResponseEntity.ok("User signed out successfully");
     }

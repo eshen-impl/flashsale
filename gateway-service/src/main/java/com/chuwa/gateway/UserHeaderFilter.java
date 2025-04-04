@@ -20,15 +20,20 @@ public class UserHeaderFilter implements GlobalFilter, Ordered {
         return exchange.getPrincipal()
                 .cast(Authentication.class)
                 .flatMap(authentication -> {
-                    String userId = ((UserSession) authentication.getPrincipal()).getUsername();
-                    log.info("Injecting User ID into Header: " + userId);
+                    UserSession userSession = (UserSession) authentication.getPrincipal();
+                     if (userSession != null) {
+                        String userId = userSession.getUsername();
+                        log.info("Injecting User ID into Header: " + userId);
 
-                    // Modify request to include userId in headers
-                    ServerHttpRequest modifiedRequest = exchange.getRequest().mutate()
-                            .header("X-User-Id", userId)
-                            .build();
+                        // Modify request to include userId in headers
+                        ServerHttpRequest modifiedRequest = exchange.getRequest().mutate()
+                                .header("X-User-Id", userId)
+                                .build();
 
-                    return chain.filter(exchange.mutate().request(modifiedRequest).build());
+                        return chain.filter(exchange.mutate().request(modifiedRequest).build());
+                    } else {
+                        return chain.filter(exchange);
+                     }
                 })
                 .switchIfEmpty(chain.filter(exchange));
     }

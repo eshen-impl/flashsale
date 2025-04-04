@@ -14,9 +14,7 @@ import org.springframework.security.web.server.context.NoOpServerSecurityContext
 @EnableWebFluxSecurity
 public class SecurityConfig {
 
-// JwtAuthManager jwtAuthManager,
-// JwtAuthConverter jwtAuthConverter
-    //JwtAuthWebFilter jwtAuthWebFilter
+
     @Bean
     public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http, JwtAuthManager jwtAuthManager,
 JwtAuthConverter jwtAuthConverter) {

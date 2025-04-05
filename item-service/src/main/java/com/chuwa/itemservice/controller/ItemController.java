@@ -93,6 +93,6 @@ public class ItemController {
     @GetMapping("/mgmt/flashsale")
     public ResponseEntity<String> cacheFlashSale() {
 
-        return ResponseEntity.ok(flashSaleCacheJob.cacheFlashSaleItems());
+        return ResponseEntity.ok(flashSaleCacheJob.scheduledDailyCache());
     }
 }

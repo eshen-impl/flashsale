@@ -4,6 +4,7 @@ import com.chuwa.itemservice.dao.ItemRepository;
 import com.chuwa.itemservice.entity.Item;
 import com.chuwa.itemservice.exception.ResourceNotFoundException;
 import com.chuwa.itemservice.payload.ItemDTO;
+import com.chuwa.itemservice.service.FlashSaleCacheJob;
 import com.chuwa.itemservice.service.ItemService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -24,12 +26,15 @@ public class ItemServiceImpl implements ItemService {
     private final StringRedisTemplate redisTemplate;
     private final ObjectMapper objectMapper;
 
+    private final FlashSaleCacheJob flashSaleCacheJob;
+
     private static final String FLASH_SALE_CACHE_KEY = "flashsale:"; // Redis key prefix
 
-    public ItemServiceImpl(ItemRepository itemRepository, StringRedisTemplate redisTemplate, ObjectMapper objectMapper) {
+    public ItemServiceImpl(ItemRepository itemRepository, StringRedisTemplate redisTemplate, ObjectMapper objectMapper, FlashSaleCacheJob flashSaleCacheJob) {
         this.itemRepository = itemRepository;
         this.redisTemplate = redisTemplate;
         this.objectMapper = objectMapper;
+        this.flashSaleCacheJob = flashSaleCacheJob;
     }
 
 //    public ItemDTO createItem(ItemDTO itemDTO) {
@@ -48,11 +53,12 @@ public class ItemServiceImpl implements ItemService {
             try {
                 return convertToDTO(objectMapper.readValue(cachedItem, Item.class));
             } catch (Exception e) {
-                log.warn(e.getMessage());
+                log.warn("Failed to parse flash sale item JSON: " + e.getMessage());
             }
         }
 
         Item item = itemRepository.findById(itemId).orElseThrow(() -> new ResourceNotFoundException("Item not found"));
+        flashSaleCacheJob.cacheFlashSaleItem(item); //in case daily cache job failed
         return convertToDTO(item);
     }
 
@@ -88,36 +94,31 @@ public class ItemServiceImpl implements ItemService {
 
         List<Item> items = itemRepository.findByStartDate(today);
 
-        // Cache them for later use
-        items.forEach(this::cacheItem);
+        // Cache them for later use in case daily cache job failed
+        flashSaleCacheJob.cacheFlashSaleListAndItems(today, items);
 
         return items.stream().map(this::convertToDTO).collect(Collectors.toList());
     }
 
     private List<ItemDTO> getItemsFromCache(LocalDate today) {
-        return redisTemplate.keys(FLASH_SALE_CACHE_KEY + "*").stream()
-                .map(key -> redisTemplate.opsForValue().get(key))
+        List<String> itemJsonList = redisTemplate.opsForList().range(FLASH_SALE_CACHE_KEY + today, 0, -1);
+        if (itemJsonList == null) return List.of();
+
+        return itemJsonList.stream()
                 .map(json -> {
                     try {
                         return objectMapper.readValue(json, Item.class);
                     } catch (Exception e) {
-                        log.warn(e.getMessage());
+                        log.warn("Failed to parse flash sale item JSON: " + e.getMessage());
                         return null;
                     }
                 })
-                .filter(item -> item != null && item.getStartDate().equals(today))
+                .filter(Objects::nonNull)
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }
 
-    private void cacheItem(Item item) {
-        try {
-            String itemJson = objectMapper.writeValueAsString(item);
-            redisTemplate.opsForValue().set(FLASH_SALE_CACHE_KEY + item.getItemId(), itemJson);
-        } catch (Exception e) {
-            log.warn(e.getMessage());
-        }
-    }
+
 
 //    public Map<String, Integer> getAvailableUnits(List<String> itemIds) {
 //        return itemRepository.findItemsByItemIdIn(itemIds).stream()

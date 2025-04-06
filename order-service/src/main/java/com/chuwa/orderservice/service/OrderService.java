@@ -6,6 +6,7 @@ import com.chuwa.orderservice.payload.CreateOrderRequestDTO;
 import com.chuwa.orderservice.payload.OrderDTO;
 import com.chuwa.orderservice.payload.RefundRequestDTO;
 import com.chuwa.orderservice.payload.UpdateOrderRequestDTO;
+import org.springframework.data.domain.Page;
 
 
 import java.util.List;
@@ -16,7 +17,7 @@ public interface OrderService {
     OrderDTO updateOrder(UpdateOrderRequestDTO updateRequest);
     OrderDTO cancelOrder(UUID orderId);
     OrderDTO refundOrder(RefundRequestDTO refundRequestDTO);
-    List<OrderDTO> getUserOrders(UUID userId);
+    Page<OrderDTO> getUserOrders(int page, int size, UUID userId);
     OrderDTO getOrderById(UUID orderId);
     void processPaymentResponse(PaymentEvent response);
     void processShippingResponse(ShippingEvent event);

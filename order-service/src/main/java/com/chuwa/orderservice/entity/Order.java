@@ -3,14 +3,12 @@ package com.chuwa.orderservice.entity;
 import com.chuwa.orderservice.enums.OrderStatus;
 import com.chuwa.orderservice.enums.PaymentRefundStatus;
 import com.chuwa.orderservice.enums.PaymentStatus;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
-import org.springframework.data.cassandra.core.cql.PrimaryKeyType;
-import org.springframework.data.cassandra.core.mapping.Column;
-import org.springframework.data.cassandra.core.mapping.PrimaryKeyColumn;
-import org.springframework.data.cassandra.core.mapping.Table;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Currency;
@@ -19,51 +17,59 @@ import java.util.UUID;
 
 @NoArgsConstructor
 @AllArgsConstructor
-@Table("orders")
+@Entity
+@Table(name = "orders", indexes = {
+        @Index(name = "idx_user_id", columnList = "user_id")
+})
 public class Order {
 
-    @PrimaryKeyColumn(name = "order_id", type = PrimaryKeyType.PARTITIONED)
+    @Id
+    @Column(nullable = false, updatable = false, columnDefinition = "BINARY(16)")
     private UUID orderId;
-    @Column("user_id")
+
+    @Column(name = "user_id", nullable = false, columnDefinition = "BINARY(16)")
     private UUID userId;
 
-    @Column("order_status")
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private OrderStatus orderStatus;
 
-    @Column("total_amount")
+    @Column(nullable = false)
     private BigDecimal totalAmount;
 
-    @Column("created_at")
+    @CreationTimestamp
     private LocalDateTime createdAt;
 
-    @Column("updated_at")
+    @UpdateTimestamp
     private LocalDateTime updatedAt;
 
-    @Column("items")
-    private String items; //List of items in JSON
+    @Column(nullable = false)
+    private String items;
 
-    @Column("payment_status")
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private PaymentStatus paymentStatus;
 
-    @Column("shipping_address")
-    private String shippingAddress;  // Full address snapshot in JSON
+    @Column
+    private String shippingAddress;
 
-    @Column("billing_address")
-    private String billingAddress;  // Full address snapshot in JSON
+    @Column
+    private String billingAddress;
 
-    @Column("payment_method")
-    private String paymentMethod; // only necessary metadata snapshot from the payment method
+    @Column
+    private String paymentMethod;
 
-    @Column("transaction_key")
-    private UUID transactionKey; //to ensure idempotency
+    @Column(nullable = false, unique = true, columnDefinition = "BINARY(16)")
+    private UUID transactionKey;
 
-    @Column("currency")
+    @Column(nullable = false)
     private String currency;
 
-    @Column("refund_status")
+    @Enumerated(EnumType.STRING)
+    @Column
     private PaymentRefundStatus refundStatus;
 
-    @Column("refunded_amount")
+    @Column
     private BigDecimal refundedAmount;
 
 

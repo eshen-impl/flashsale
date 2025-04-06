@@ -9,7 +9,6 @@ import org.springframework.context.annotation.ComponentScan;
 
 @SpringBootApplication
 @EnableFeignClients
-@ComponentScan(basePackages = {"com.chuwa.orderservice", "com.chuwa.securitylib"})
 public class OrderServiceApplication {
 
     public static void main(String[] args) {

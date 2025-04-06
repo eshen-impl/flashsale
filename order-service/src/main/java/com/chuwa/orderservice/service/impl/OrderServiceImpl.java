@@ -3,7 +3,6 @@ package com.chuwa.orderservice.service.impl;
 import com.chuwa.orderservice.client.AccountClient;
 import com.chuwa.orderservice.client.ItemClient;
 import com.chuwa.orderservice.client.PaymentClient;
-import com.chuwa.orderservice.dao.OrderByUserRepository;
 import com.chuwa.orderservice.dao.OrderRepository;
 import com.chuwa.orderservice.entity.*;
 import com.chuwa.orderservice.enums.*;
@@ -11,7 +10,6 @@ import com.chuwa.orderservice.exception.EmptyCartException;
 import com.chuwa.orderservice.exception.InsufficientStockException;
 import com.chuwa.orderservice.exception.ResourceNotFoundException;
 import com.chuwa.orderservice.payload.*;
-//import com.chuwa.orderservice.publisher.OrderEventPublisher;
 import com.chuwa.orderservice.producer.OrderEventProducer;
 import com.chuwa.orderservice.service.OrderService;
 import com.chuwa.orderservice.util.CartRedisUtil;
@@ -19,6 +17,10 @@ import com.chuwa.orderservice.util.JsonUtil;
 import com.chuwa.orderservice.util.UUIDUtil;
 import feign.FeignException;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -30,16 +32,14 @@ import java.util.stream.Collectors;
 public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepository;
-    private final OrderByUserRepository orderByUserRepository;
     private final CartRedisUtil cartRedisUtil;
     private final ItemClient itemClient;
     private final AccountClient accountClient;
     private final PaymentClient paymentClient;
     private final OrderEventProducer orderEventProducer;
 
-    public OrderServiceImpl(OrderRepository orderRepository, OrderByUserRepository orderByUserRepository, CartRedisUtil cartRedisUtil, ItemClient itemClient, AccountClient accountClient, PaymentClient paymentClient, OrderEventProducer orderEventProducer) {
+    public OrderServiceImpl(OrderRepository orderRepository, CartRedisUtil cartRedisUtil, ItemClient itemClient, AccountClient accountClient, PaymentClient paymentClient, OrderEventProducer orderEventProducer) {
         this.orderRepository = orderRepository;
-        this.orderByUserRepository = orderByUserRepository;
         this.cartRedisUtil = cartRedisUtil;
         this.itemClient = itemClient;
         this.accountClient = accountClient;
@@ -100,7 +100,6 @@ public class OrderServiceImpl implements OrderService {
         }
 
         orderRepository.save(order);
-        orderByUserRepository.save(convertToOrderByUser(order));
         cartRedisUtil.clearCart(cartKey);
 
         return convertToDTO(order);
@@ -155,7 +154,6 @@ public class OrderServiceImpl implements OrderService {
         }
 
         orderRepository.save(order);
-        orderByUserRepository.save(convertToOrderByUser(order));
 
         return convertToDTO(order);
     }
@@ -186,7 +184,6 @@ public class OrderServiceImpl implements OrderService {
             throw new RuntimeException("Error calling cancel authorization from payment service." + e.getMessage());
         }
         orderRepository.save(order);
-        orderByUserRepository.save(convertToOrderByUser(order));
         orderEventProducer.sendToShipping(convertToOrderEvent(order, OrderEventType.CANCEL_ORDER));
         return convertToDTO(order);
     }
@@ -212,14 +209,14 @@ public class OrderServiceImpl implements OrderService {
             throw new RuntimeException("Error calling initiate refund from payment service. " + e.getMessage());
         }
         orderRepository.save(order);
-        orderByUserRepository.save(convertToOrderByUser(order));
 
         return convertToDTO(order);
     }
 
-    public List<OrderDTO> getUserOrders(UUID userId) {
-        List<OrderByUser> orders = orderByUserRepository.findByUserId(userId);
-        return orders.stream().map(this::convertToDTO).collect(Collectors.toList());
+    public Page<OrderDTO> getUserOrders(int page, int size, UUID userId) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        Page<Order> orders = orderRepository.findOrdersByUserId(userId, pageable);
+        return orders.map(this::convertToDTO);
     }
 
     public OrderDTO getOrderById(UUID orderId) {
@@ -250,7 +247,6 @@ public class OrderServiceImpl implements OrderService {
         }
         order.setUpdatedAt(LocalDateTime.now());
         orderRepository.save(order);
-        orderByUserRepository.save(convertToOrderByUser(order));
     }
 
     public void processShippingResponse(ShippingEvent event) {
@@ -264,7 +260,6 @@ public class OrderServiceImpl implements OrderService {
         }
         order.setUpdatedAt(LocalDateTime.now());
         orderRepository.save(order);
-        orderByUserRepository.save(convertToOrderByUser(order));
 
     }
 
@@ -332,22 +327,6 @@ public class OrderServiceImpl implements OrderService {
                 order.getBillingAddress(), order.getPaymentMethod(), order.getTransactionKey(),
                 order.getCurrency().getCurrencyCode(), order.getRefundStatus(), order.getRefundedAmount());
 
-    }
-
-    private OrderDTO convertToDTO(OrderByUser order) {
-        return new OrderDTO(order.getOrderId(), order.getUserId(), order.getOrderStatus(),
-                order.getTotalAmount(), order.getCreatedAt(), order.getUpdatedAt(),
-                order.getItems(), order.getPaymentStatus(), order.getShippingAddress(),
-                order.getBillingAddress(), order.getPaymentMethod(), order.getTransactionKey(),
-                order.getCurrency().getCurrencyCode(), order.getRefundStatus(), order.getRefundedAmount());
-    }
-
-    private OrderByUser convertToOrderByUser(Order order) {
-        return new OrderByUser(order.getUserId(), order.getCreatedAt(), order.getOrderId(),
-                order.getOrderStatus(), order.getTotalAmount(), order.getUpdatedAt(),
-                order.getItems(), order.getPaymentStatus(), order.getShippingAddress(),
-                order.getBillingAddress(), order.getPaymentMethod(), order.getTransactionKey(),
-                order.getCurrency().getCurrencyCode(), order.getRefundStatus(), order.getRefundedAmount());
     }
 
     private OrderEvent convertToOrderEvent(Order order, OrderEventType type) {

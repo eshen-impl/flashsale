@@ -6,8 +6,8 @@ import com.chuwa.orderservice.payload.RefundRequestDTO;
 import com.chuwa.orderservice.payload.UpdateOrderRequestDTO;
 import com.chuwa.orderservice.service.OrderService;
 import io.swagger.v3.oas.annotations.Operation;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
@@ -27,8 +27,8 @@ public class OrderController {
     @PostMapping("/create")
     @Operation(summary = "Submit a new order for all the added items in cart. ",
             description = "Return details of this order. " + "Required to be authenticated (have signed in) ")
-    public ResponseEntity<OrderDTO> createOrder(@RequestBody CreateOrderRequestDTO createOrderRequestDTO, Principal principal) {
-        UUID userId = UUID.fromString(principal.getName());
+    public ResponseEntity<OrderDTO> createOrder(@RequestBody CreateOrderRequestDTO createOrderRequestDTO, @RequestHeader("X-User-Id") String userIdString) {
+        UUID userId = UUID.fromString(userIdString);
         return ResponseEntity.ok(orderService.createOrder(userId, createOrderRequestDTO));
     }
 
@@ -58,9 +58,11 @@ public class OrderController {
     @GetMapping("/history")
     @Operation(summary = "Get all history orders and their details for the current user. ",
             description =  "Required to be authenticated (have signed in) ")
-    public ResponseEntity<List<OrderDTO>> getUserOrders(Principal principal) {
-        UUID userId = UUID.fromString(principal.getName());
-        return ResponseEntity.ok(orderService.getUserOrders(userId));
+    public ResponseEntity<Page<OrderDTO>> getUserOrders(@RequestParam(defaultValue = "0", name = "page") int page,
+                                                        @RequestParam(defaultValue = "5", name = "size") int size,
+                                                        @RequestHeader("X-User-Id") String userIdString) {
+        UUID userId = UUID.fromString(userIdString);
+        return ResponseEntity.ok(orderService.getUserOrders(page, size, userId));
     }
 
     @GetMapping("/{orderId}")

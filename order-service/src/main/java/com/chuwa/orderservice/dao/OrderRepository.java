@@ -2,15 +2,19 @@ package com.chuwa.orderservice.dao;
 
 import com.chuwa.orderservice.entity.Order;
 
-import org.springframework.data.cassandra.repository.CassandraRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
+
 import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface OrderRepository extends CassandraRepository<Order, UUID> {
+public interface OrderRepository extends JpaRepository<Order, UUID> {
     Optional<Order> findByOrderId(UUID orderId);
+
+    Page<Order> findOrdersByUserId(UUID userId, Pageable pageable);
 }
 

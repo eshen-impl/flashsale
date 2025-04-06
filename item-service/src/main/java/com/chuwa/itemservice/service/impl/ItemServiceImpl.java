@@ -1,9 +1,9 @@
 package com.chuwa.itemservice.service.impl;
 
-import com.chuwa.itemservice.dao.ItemRepository;
-import com.chuwa.itemservice.entity.Item;
+import com.chuwa.itemservice.dao.FlashSaleItemRepository;
+import com.chuwa.itemservice.entity.FlashSaleItem;
 import com.chuwa.itemservice.exception.ResourceNotFoundException;
-import com.chuwa.itemservice.payload.ItemDTO;
+import com.chuwa.itemservice.payload.FlashSaleItemDTO;
 import com.chuwa.itemservice.service.FlashSaleCacheJob;
 import com.chuwa.itemservice.service.ItemService;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -16,7 +16,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -24,7 +23,7 @@ import java.util.stream.Collectors;
 @Service
 public class ItemServiceImpl implements ItemService {
 
-    private final ItemRepository itemRepository;
+    private final FlashSaleItemRepository flashSaleItemRepository;
     private final StringRedisTemplate redisTemplate;
     private final ObjectMapper objectMapper;
 
@@ -32,80 +31,85 @@ public class ItemServiceImpl implements ItemService {
 
     private static final String FLASH_SALE_CACHE_KEY = "flashsale:"; // Redis key prefix
 
-    public ItemServiceImpl(ItemRepository itemRepository, StringRedisTemplate redisTemplate, ObjectMapper objectMapper, FlashSaleCacheJob flashSaleCacheJob) {
-        this.itemRepository = itemRepository;
+    public ItemServiceImpl(FlashSaleItemRepository flashSaleItemRepository, StringRedisTemplate redisTemplate, ObjectMapper objectMapper, FlashSaleCacheJob flashSaleCacheJob) {
+        this.flashSaleItemRepository = flashSaleItemRepository;
         this.redisTemplate = redisTemplate;
         this.objectMapper = objectMapper;
         this.flashSaleCacheJob = flashSaleCacheJob;
     }
 
-//    public ItemDTO createItem(ItemDTO itemDTO) {
-//        Item item = new Item();
-//        mapToItem(item, itemDTO);
-//
-//        Item savedItem = itemRepository.save(item);
-//        return convertToDTO(savedItem);
-//    }
+    public FlashSaleItemDTO createItem(FlashSaleItemDTO flashSaleItemDTO) {
+        FlashSaleItem flashSaleItem = objectMapper.convertValue(flashSaleItemDTO, FlashSaleItem.class);
+        flashSaleItem.setFlashSaleId(null);
 
-    public ItemDTO getItemById(String itemId) {
-        String cachedItem = (String) redisTemplate.opsForHash().get(FLASH_SALE_CACHE_KEY + LocalDate.now(), itemId);
+        FlashSaleItem savedFlashSaleItem = flashSaleItemRepository.save(flashSaleItem);
+        return convertToDTO(savedFlashSaleItem);
+    }
+
+    public FlashSaleItemDTO getItemById(Long itemId) {
+        //TODO: split normal item and flash sale item entity/repository
+        FlashSaleItem flashSaleItem = flashSaleItemRepository.findById(itemId).orElseThrow(() -> new ResourceNotFoundException("Item not found"));
+        return convertToDTO(flashSaleItem);
+    }
+
+    public FlashSaleItemDTO getFlashSaleItemById(Long flashSaleId) {
+        String cachedItem = (String) redisTemplate.opsForHash().get(FLASH_SALE_CACHE_KEY + LocalDate.now(), String.valueOf(flashSaleId));
 
         if (cachedItem != null) {
             try {
-                return convertToDTO(objectMapper.readValue(cachedItem, Item.class));
+                return objectMapper.readValue(cachedItem, FlashSaleItemDTO.class);
             } catch (Exception e) {
-                log.warn("Failed to parse flash sale item JSON: " + e.getMessage());
+                log.warn("Failed to parse flash sale flashSaleItem JSON: " + e.getMessage());
             }
         }
 
-        Item item = itemRepository.findById(itemId).orElseThrow(() -> new ResourceNotFoundException("Item not found"));
-        return convertToDTO(item);
+        throw new ResourceNotFoundException("FlashSaleItem not found");
     }
 
 
-//    public ItemDTO updateItem(String id, ItemDTO itemDTO) {
-//        Item existingItem = itemRepository.findById(id)
-//                .orElseThrow(() -> new ResourceNotFoundException("Item not found"));
+//    public FlashSaleItemDTO updateItem(String id, FlashSaleItemDTO itemDTO) {
+//        FlashSaleItem existingItem = flashSaleItemRepository.findById(id)
+//                .orElseThrow(() -> new ResourceNotFoundException("FlashSaleItem not found"));
 //
 //        mapToItem(existingItem, itemDTO);
-//        Item updatedItem = itemRepository.save(existingItem);
+//        FlashSaleItem updatedItem = flashSaleItemRepository.save(existingItem);
 //
 //        return convertToDTO(updatedItem);
 //    }
 
 //    public void deleteItem(String id) {
-//        itemRepository.deleteById(id);
+//        flashSaleItemRepository.deleteById(id);
 //    }
 
-    public Page<ItemDTO> getAllItems(Pageable pageable) {
-        Page<Item> items = itemRepository.findAll(pageable);
+    public Page<FlashSaleItemDTO> getAllItems(Pageable pageable) {
+        Page<FlashSaleItem> items = flashSaleItemRepository.findAll(pageable);
         return items.map(this::convertToDTO);
 
     }
 
-    public List<ItemDTO> getTodayFlashSaleItems() {
+    public List<FlashSaleItemDTO> getTodayFlashSaleItems() {
         LocalDate today = LocalDate.now();
 
-        List<ItemDTO> cachedItems = getItemsFromCache(today);
+        List<FlashSaleItemDTO> cachedItems = getItemsFromCache(today);
 
         if (!cachedItems.isEmpty()) {
             return cachedItems;
         }
 
-        List<Item> items = itemRepository.findByStartDate(today);
+        List<FlashSaleItem> flashSaleItems = flashSaleItemRepository.findBySaleDate(today);
 
         // Cache them for later use in case daily cache job failed
-        flashSaleCacheJob.cacheFlashSaleListAndItems(today, items);
+        flashSaleCacheJob.cacheFlashSaleListAndItems(today, flashSaleItems);
 
-        return items.stream().map(this::convertToDTO).collect(Collectors.toList());
+        return flashSaleItems.stream().map(this::convertToDTO).collect(Collectors.toList());
     }
 
-    private List<ItemDTO> getItemsFromCache(LocalDate today) {
+    private List<FlashSaleItemDTO> getItemsFromCache(LocalDate today) {
          return redisTemplate.opsForHash().values(FLASH_SALE_CACHE_KEY + today)
                  .stream()
                  .map(val -> {
                      try {
-                         return objectMapper.readValue(val.toString(), Item.class);
+                         return objectMapper.readValue(val.toString(), FlashSaleItem.class);
                      } catch (JsonProcessingException e) {
                          log.warn("Failed to parse flash sale item JSON: " + e.getMessage());
                          return null;
@@ -119,32 +123,14 @@ public class ItemServiceImpl implements ItemService {
 
 
 //    public Map<String, Integer> getAvailableUnits(List<String> itemIds) {
-//        return itemRepository.findItemsByItemIdIn(itemIds).stream()
-//                .collect(Collectors.toMap(Item::getItemId, Item::getAvailableUnits));
+//        return flashSaleItemRepository.findItemsByItemIdIn(itemIds).stream()
+//                .collect(Collectors.toMap(FlashSaleItem::getItemId, FlashSaleItem::getAvailableUnits));
 //    }
 
-//    private void mapToItem(Item item, ItemDTO itemDTO) {
-//        item.setItemName(itemDTO.getItemName());
-//        item.setUpc(itemDTO.getUpc());
-//        item.setUnitPrice(itemDTO.getUnitPrice());
-//        item.setPictureUrls(itemDTO.getPictureUrls());
-//        item.setAvailableUnits(itemDTO.getAvailableUnits());
-//    }
-//
-    private ItemDTO convertToDTO(Item item) {
-        ItemDTO itemDTO = new ItemDTO();
-        itemDTO.setItemId(item.getItemId());
-        itemDTO.setItemName(item.getItemName());
-        itemDTO.setUpc(item.getUpc());
-        itemDTO.setUnitPrice(item.getUnitPrice());
-        itemDTO.setStock(item.getStock());
-        itemDTO.setStartDate(item.getStartDate());
-        itemDTO.setSaleSession(item.getSaleSession());
 
-        return itemDTO;
+    private FlashSaleItemDTO convertToDTO(FlashSaleItem flashSaleItem) {
+        return objectMapper.convertValue(flashSaleItem, FlashSaleItemDTO.class);
     }
-
-
 
 
 }

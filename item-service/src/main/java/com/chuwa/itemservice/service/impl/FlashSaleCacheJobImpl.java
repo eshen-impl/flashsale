@@ -1,7 +1,7 @@
 package com.chuwa.itemservice.service.impl;
 
-import com.chuwa.itemservice.dao.ItemRepository;
-import com.chuwa.itemservice.entity.Item;
+import com.chuwa.itemservice.dao.FlashSaleItemRepository;
+import com.chuwa.itemservice.entity.FlashSaleItem;
 import com.chuwa.itemservice.service.FlashSaleCacheJob;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -14,13 +14,13 @@ import java.util.List;
 @Slf4j
 @Service
 public class FlashSaleCacheJobImpl implements FlashSaleCacheJob {
-    private final ItemRepository itemRepository;
+    private final FlashSaleItemRepository flashSaleItemRepository;
     private final StringRedisTemplate redisTemplate;
     private final ObjectMapper objectMapper;
     private static final String FLASH_SALE_CACHE_KEY = "flashsale:";
 
-    public FlashSaleCacheJobImpl(ItemRepository itemRepository, StringRedisTemplate redisTemplate, ObjectMapper objectMapper) {
-        this.itemRepository = itemRepository;
+    public FlashSaleCacheJobImpl(FlashSaleItemRepository flashSaleItemRepository, StringRedisTemplate redisTemplate, ObjectMapper objectMapper) {
+        this.flashSaleItemRepository = flashSaleItemRepository;
         this.redisTemplate = redisTemplate;
         this.objectMapper = objectMapper;
     }
@@ -30,24 +30,24 @@ public class FlashSaleCacheJobImpl implements FlashSaleCacheJob {
     public String scheduledDailyCache() {
         LocalDate today = LocalDate.now();
         redisTemplate.delete(FLASH_SALE_CACHE_KEY + today.minusDays(1));
-        List<Item> items = itemRepository.findByStartDate(today);
-        cacheFlashSaleListAndItems(today, items);
-        return "Completed daily job for flash sale items cache.";
+        List<FlashSaleItem> flashSaleItems = flashSaleItemRepository.findBySaleDate(today);
+        cacheFlashSaleListAndItems(today, flashSaleItems);
+        return "Completed daily job for flash sale flashSaleItems cache.";
     }
 
 
 
-    public void cacheFlashSaleListAndItems(LocalDate date, List<Item> items) {
+    public void cacheFlashSaleListAndItems(LocalDate date, List<FlashSaleItem> flashSaleItems) {
         String redisKey = FLASH_SALE_CACHE_KEY + date;
-        for (Item item : items) {
+        for (FlashSaleItem flashSaleItem : flashSaleItems) {
             try {
-                String itemJson = objectMapper.writeValueAsString(item);
-                redisTemplate.opsForHash().put(redisKey, item.getItemId(), itemJson);
+                String itemJson = objectMapper.writeValueAsString(flashSaleItem);
+                redisTemplate.opsForHash().put(redisKey, String.valueOf(flashSaleItem.getFlashSaleId()), itemJson);
             } catch (Exception e) {
-                log.warn("Failed to write flash sale item to Redis: " + e.getMessage());
+                log.warn("Failed to write flash sale flashSaleItem to Redis: " + e.getMessage());
             }
         }
-        log.info("Cached " + items.size() + " flash sale items for " + date);
+        log.info("Cached " + flashSaleItems.size() + " flash sale flashSaleItems for " + date);
     }
 
 }

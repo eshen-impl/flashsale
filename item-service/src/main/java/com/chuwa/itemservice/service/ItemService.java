@@ -1,20 +1,20 @@
 package com.chuwa.itemservice.service;
 
-import com.chuwa.itemservice.payload.ItemDTO;
+import com.chuwa.itemservice.payload.FlashSaleItemDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
-import java.util.Map;
 
 public interface ItemService {
-//    ItemDTO createItem(ItemDTO itemDTO);
+    FlashSaleItemDTO createItem(FlashSaleItemDTO flashSaleItemDTO);
 
-    ItemDTO getItemById(String itemId);
-//    ItemDTO updateItem(String id, ItemDTO itemDTO);
+    FlashSaleItemDTO getItemById(Long itemId);
+    FlashSaleItemDTO getFlashSaleItemById(Long flashSaleId);
+//    FlashSaleItemDTO updateItem(String id, FlashSaleItemDTO itemDTO);
 //    void deleteItem(String id);
-    Page<ItemDTO> getAllItems(Pageable pageable);
-    List<ItemDTO> getTodayFlashSaleItems();
+    Page<FlashSaleItemDTO> getAllItems(Pageable pageable);
+    List<FlashSaleItemDTO> getTodayFlashSaleItems();
 
 //    Map<String, Integer> getAvailableUnits(List<String> itemIds);
 }

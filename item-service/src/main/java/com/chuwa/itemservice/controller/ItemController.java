@@ -1,6 +1,6 @@
 package com.chuwa.itemservice.controller;
 
-import com.chuwa.itemservice.payload.ItemDTO;
+import com.chuwa.itemservice.payload.FlashSaleItemDTO;
 import com.chuwa.itemservice.service.FlashSaleCacheJob;
 import com.chuwa.itemservice.service.ItemService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -13,7 +13,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/items")
@@ -29,18 +28,18 @@ public class ItemController {
     }
 
 
-//    @PreAuthorize("hasRole('ROLE_ADMIN')")
-//    @PostMapping
-//    @Operation(summary = "Post new product and its details",
-//            description = "Required to have role: 'ROLE_AMIN'")
-//    public ResponseEntity<ItemDTO> createItem(@RequestBody ItemDTO itemDTO) {
-//        return ResponseEntity.ok(itemService.createItem(itemDTO));
-//    }
+
+    @PostMapping
+    @Operation(summary = "Post new product and its details",
+            description = "Required to have role: 'ROLE_AMIN'")
+    public ResponseEntity<FlashSaleItemDTO> createItem(@RequestBody FlashSaleItemDTO flashSaleItemDTO) {
+        return ResponseEntity.ok(itemService.createItem(flashSaleItemDTO));
+    }
 
     @GetMapping("/{id}")
     @Operation(summary = "Get a specific product's details",
             description = "Accessible to all guests and authenticated users")
-    public ResponseEntity<ItemDTO> getItemById(@PathVariable("id") String id) {
+    public ResponseEntity<FlashSaleItemDTO> getItemById(@PathVariable("id") Long id) {
         return ResponseEntity.ok(itemService.getItemById(id));
     }
 
@@ -48,7 +47,7 @@ public class ItemController {
 //    @PutMapping("/{id}")
 //    @Operation(summary = "Update an existing product and its details",
 //            description = "Required to have role: 'ROLE_AMIN'")
-//    public ResponseEntity<ItemDTO> updateItem(@PathVariable("id") String id,  @RequestBody ItemDTO itemDTO) {
+//    public ResponseEntity<FlashSaleItemDTO> updateItem(@PathVariable("id") String id,  @RequestBody FlashSaleItemDTO itemDTO) {
 //        return ResponseEntity.ok(itemService.updateItem(id, itemDTO));
 //
 //    }
@@ -62,14 +61,14 @@ public class ItemController {
 //        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 //    }
 
-//    @PreAuthorize("hasRole('ROLE_ADMIN')")
+
     @GetMapping("/mgmt/inventory")
     @Operation(summary = "Get an inventory list of all available products",
             description = "Required to have role: 'ROLE_AMIN'")
-    public ResponseEntity<Page<ItemDTO>> getAllItems(@RequestParam(defaultValue = "0", name = "page") int page,
-                                                     @RequestParam(defaultValue = "10", name = "size") int size) {
+    public ResponseEntity<Page<FlashSaleItemDTO>> getAllItems(@RequestParam(defaultValue = "0", name = "page") int page,
+                                                              @RequestParam(defaultValue = "10", name = "size") int size) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<ItemDTO> itemDTOs = itemService.getAllItems(pageable);
+        Page<FlashSaleItemDTO> itemDTOs = itemService.getAllItems(pageable);
         return new ResponseEntity<>(itemDTOs, HttpStatus.OK);
 
     }
@@ -83,14 +82,20 @@ public class ItemController {
 //    }
 
 
-    @GetMapping("/flashsale")
-    public ResponseEntity<List<ItemDTO>> getTodayFlashSale() {
+    @GetMapping("/flashsale/today")
+    public ResponseEntity<List<FlashSaleItemDTO>> getTodayFlashSale() {
 
         return ResponseEntity.ok(itemService.getTodayFlashSaleItems());
     }
 
-//    @PreAuthorize("hasRole('ROLE_ADMIN')")
-    @GetMapping("/mgmt/flashsale")
+    @GetMapping("/flashsale/{id}")
+    @Operation(summary = "Get a flash sale product's details",
+            description = "Accessible to all guests and authenticated users")
+    public ResponseEntity<FlashSaleItemDTO> getFlashSaleItemById(@PathVariable("id") Long id) {
+        return ResponseEntity.ok(itemService.getFlashSaleItemById(id));
+    }
+
+    @GetMapping("/mgmt/flashsale/cache")
     public ResponseEntity<String> cacheFlashSale() {
 
         return ResponseEntity.ok(flashSaleCacheJob.scheduledDailyCache());

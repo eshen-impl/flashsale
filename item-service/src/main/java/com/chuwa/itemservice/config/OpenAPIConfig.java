@@ -13,7 +13,7 @@ public class OpenAPIConfig {
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
                 .info(new Info()
-                        .title("Shopping Platform Emart API - Item Service")
+                        .title("Shopping Platform Emart API - FlashSaleItem Service")
                         .version("1.0")
                         .description("Manages product metadata, including item name, price, UPC, images, and inventory. "
                                 + "Provides endpoints for item lookup and stock updates (restricted to admins)."))

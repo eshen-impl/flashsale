@@ -13,20 +13,20 @@ services:
     networks:
       - my-network
 
-#  gateway-service:
-#    build: ./gateway-service
-#    container_name: gateway-service
-#    ports:
-#      - "9000:9000"  # Expose only the gateway
-#    environment:
-#      - SERVER_PORT=9000
-#      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
-#      - SPRING_DATA_REDIS_HOST=redis
-#      - SPRING_DATA_REDIS_PORT=6379
-#    depends_on:
-#      - eureka-server
-#    networks:
-#      - my-network
+  gateway-service:
+    build: ./gateway-service
+    container_name: gateway-service
+    ports:
+      - "9000:9000"  # Expose only the gateway
+    environment:
+      - SERVER_PORT=9000
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
+      - SPRING_DATA_REDIS_HOST=host.docker.internal
+      - SPRING_DATA_REDIS_PORT=6379
+    depends_on:
+      - eureka-server
+    networks:
+      - my-network
 
 #  Microservices (NOT EXPOSED, only accessible within the network)
   account-service:
@@ -36,15 +36,15 @@ services:
 #      - "8080:8080"
     environment:
       - SERVER_PORT=8080
-      - SPRING_DATASOURCE_URL=jdbc:mysql://database-1.chs06sag2xwn.us-west-2.rds.amazonaws.com:3306/emart_account?useSSL=false&serverTimezone=UTC
-      - SPRING_DATASOURCE_USERNAME=admin
+      - SPRING_DATASOURCE_URL=jdbc:mysql://host.docker.internal:3306/emart_account?useSSL=false&serverTimezone=UTC
+      - SPRING_DATASOURCE_USERNAME=root
       - SPRING_DATASOURCE_PASSWORD=ying1234
-      - SPRING_DATA_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_HOST=host.docker.internal
       - SPRING_DATA_REDIS_PORT=6379
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
     depends_on:
       - eureka-server
-      - redis
+#      - redis
     networks:
       - my-network
 
@@ -55,15 +55,15 @@ services:
 #      - "8081:8081"
     environment:
       - SERVER_PORT=8081
-      - SPRING_DATASOURCE_URL=jdbc:mysql://database-1.chs06sag2xwn.us-west-2.rds.amazonaws.com:3306/flashsale_item?useSSL=false&serverTimezone=UTC
-      - SPRING_DATASOURCE_USERNAME=admin
+      - SPRING_DATASOURCE_URL=jdbc:mysql://host.docker.internal:3306/flashsale_item?useSSL=false&serverTimezone=UTC
+      - SPRING_DATASOURCE_USERNAME=root
       - SPRING_DATASOURCE_PASSWORD=ying1234
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
-      - SPRING_DATA_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_HOST=host.docker.internal
       - SPRING_DATA_REDIS_PORT=6379
     depends_on:
       - eureka-server
-      - redis
+#      - redis
     networks:
       - my-network
 
@@ -83,33 +83,36 @@ services:
 #    networks:
 #      - my-network
 
-#  order-service:
-#    build: ./order-service
-#    container_name: order-service
+  order-service:
+    build: ./order-service
+    container_name: order-service
 #    ports:
 #      - "8083:8083"
-#    environment:
-#      - SERVER_PORT=8083
-#      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+    environment:
+      - SERVER_PORT=8083
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - SPRING_DATASOURCE_URL=jdbc:mysql://host.docker.internal:3306/emart_order?useSSL=false&serverTimezone=UTC
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=ying1234
 #      - SPRING_CASSANDRA_CONTACT_POINTS=cassandra
 #      - SPRING_CASSANDRA_PORT=9042
 #      - SPRING_CASSANDRA_KEYSPACE=emart_order
-#      - SPRING_DATA_REDIS_HOST=redis
-#      - SPRING_DATA_REDIS_PORT=6379
-#      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9091
-#    depends_on:
-#      eureka-server:
-#        condition: service_started
+      - SPRING_DATA_REDIS_HOST=host.docker.internal
+      - SPRING_DATA_REDIS_PORT=6379
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9091
+    depends_on:
+      eureka-server:
+        condition: service_started
 #      redis:
 #        condition: service_started
 #      cassandra:
 #        condition: service_healthy
 #      cassandra-init:
 #        condition: service_healthy
-#      kafka:
-#        condition: service_healthy
-#    networks:
-#      - my-network
+      kafka:
+        condition: service_healthy
+    networks:
+      - my-network
 
 #  payment-service:
 #    build: ./payment-service
@@ -149,13 +152,13 @@ services:
 #    networks:
 #      - my-network
 
-  redis:
-    image: redis:alpine
-    container_name: redis
-    ports:
-      - "6379:6379"
-    networks:
-      - my-network
+#  redis:
+#    image: redis:alpine
+#    container_name: redis
+#    ports:
+#      - "6379:6379"
+#    networks:
+#      - my-network
 
 #  cassandra:
 #    image: cassandra:latest
@@ -193,92 +196,92 @@ services:
 #    networks:
 #      - my-network
 
-#  zookeeper:
-#    image: confluentinc/cp-zookeeper:latest
-#    container_name: zookeeper
-#    restart: unless-stopped
-#    ports:
-#      - '12181:12181'
-#      - '2888:2888'
-#      - '3888:3888'
-#    volumes:
-#      - ./docker-data/kafkazoo/zoo1/data:/var/lib/zookeeper/data
-#      - ./docker-data/kafkazoo/zoo1/log:/var/lib/zookeeper/log
-#    environment:
-#      ZOOKEEPER_SERVER_ID: 1
-#      ZOOKEEPER_CLIENT_PORT: 12181
-#      ZOOKEEPER_TICK_TIME: 2000
-#      ZOOKEEPER_INIT_LIMIT: 5
-#      ZOOKEEPER_SYNC_LIMIT: 2
-#      ZOOKEEPER_SERVERS: zookeeper:2888:3888
-#    healthcheck:
-#      test: echo stat | nc localhost 12181
-#      interval: 10s
-#      timeout: 10s
-#      retries: 3
-#    networks:
-#      - my-network
-#    logging:
-#      driver: "json-file"
-#      options:
-#        max-size: "1m"
-#
-#  kafka-ui:
-#    container_name: kafka-ui
-#    image: provectuslabs/kafka-ui:latest
-#    ports:
-#      - 8088:8088
-#    depends_on:
-#      kafka:
-#        condition: service_healthy
-#    environment:
-#      SERVER_PORT: 8088
-#      KAFKA_CLUSTERS_0_NAME: kafka
-#      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29091
-#      KAFKA_CLUSTERS_0_METRICS_PORT: 19101
-#      DYNAMIC_CONFIG_ENABLED: 'true'
-#    networks:
-#      - my-network
-#    logging:
-#      driver: "json-file"
-#      options:
-#        max-size: "1m"
-#
-#  kafka:
-#    image: confluentinc/cp-kafka:latest
-#    container_name: kafka
-#    restart: unless-stopped
-#    ports:
-#      - '9091:9091'
-#    depends_on:
-#      zookeeper:
-#        condition: service_healthy
-#    volumes:
-#      - ./docker-data/kafkazoo/kafka1:/var/lib/kafka/data
-#    environment:
-#      KAFKA_BROKER_ID: 1
-#      KAFKA_ZOOKEEPER_CONNECT: zookeeper:12181
-#      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
-#      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
-#      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:29091,EXTERNAL://kafka:9091
-#      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-#      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
-#      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
-#      KAFKA_DEFAULT_REPLICATION_FACTOR: 1
-#      KAFKA_NUM_PARTITIONS: 3
-#      KAFKA_JMX_PORT: 19101
-#      KAFKA_JMX_HOSTNAME: kafka
-#    healthcheck:
-#      test: nc -vz localhost 9091
-#      interval: 10s
-#      timeout: 10s
-#      retries: 3
-#    networks:
-#      - my-network
-#    logging:
-#      driver: "json-file"
-#      options:
-#        max-size: "1m"
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    container_name: zookeeper
+    restart: unless-stopped
+    ports:
+      - '12181:12181'
+      - '2888:2888'
+      - '3888:3888'
+    volumes:
+      - ./docker-data/kafkazoo/zoo1/data:/var/lib/zookeeper/data
+      - ./docker-data/kafkazoo/zoo1/log:/var/lib/zookeeper/log
+    environment:
+      ZOOKEEPER_SERVER_ID: 1
+      ZOOKEEPER_CLIENT_PORT: 12181
+      ZOOKEEPER_TICK_TIME: 2000
+      ZOOKEEPER_INIT_LIMIT: 5
+      ZOOKEEPER_SYNC_LIMIT: 2
+      ZOOKEEPER_SERVERS: zookeeper:2888:3888
+    healthcheck:
+      test: echo stat | nc localhost 12181
+      interval: 10s
+      timeout: 10s
+      retries: 3
+    networks:
+      - my-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
+
+  kafka-ui:
+    container_name: kafka-ui
+    image: provectuslabs/kafka-ui:latest
+    ports:
+      - 8088:8088
+    depends_on:
+      kafka:
+        condition: service_healthy
+    environment:
+      SERVER_PORT: 8088
+      KAFKA_CLUSTERS_0_NAME: kafka
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29091
+      KAFKA_CLUSTERS_0_METRICS_PORT: 19101
+      DYNAMIC_CONFIG_ENABLED: 'true'
+    networks:
+      - my-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
+
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    container_name: kafka
+    restart: unless-stopped
+    ports:
+      - '9091:9091'
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+    volumes:
+      - ./docker-data/kafkazoo/kafka1:/var/lib/kafka/data
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:12181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:29091,EXTERNAL://kafka:9091
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_DEFAULT_REPLICATION_FACTOR: 1
+      KAFKA_NUM_PARTITIONS: 3
+      KAFKA_JMX_PORT: 19101
+      KAFKA_JMX_HOSTNAME: kafka
+    healthcheck:
+      test: nc -vz localhost 9091
+      interval: 10s
+      timeout: 10s
+      retries: 3
+    networks:
+      - my-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
 
 networks:
   my-network:

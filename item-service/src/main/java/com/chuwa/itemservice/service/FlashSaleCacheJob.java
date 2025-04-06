@@ -9,7 +9,6 @@ public interface FlashSaleCacheJob {
 
     String scheduledDailyCache();
     void cacheFlashSaleListAndItems(LocalDate date, List<Item> items);
-    void cacheFlashSaleItem(Item item);
 
 
 }

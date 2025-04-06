@@ -6,6 +6,7 @@ import com.chuwa.itemservice.exception.ResourceNotFoundException;
 import com.chuwa.itemservice.payload.ItemDTO;
 import com.chuwa.itemservice.service.FlashSaleCacheJob;
 import com.chuwa.itemservice.service.ItemService;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -46,8 +48,7 @@ public class ItemServiceImpl implements ItemService {
 //    }
 
     public ItemDTO getItemById(String itemId) {
-
-        String cachedItem = redisTemplate.opsForValue().get(FLASH_SALE_CACHE_KEY + itemId);
+        String cachedItem = (String) redisTemplate.opsForHash().get(FLASH_SALE_CACHE_KEY + LocalDate.now(), itemId);
 
         if (cachedItem != null) {
             try {
@@ -58,7 +59,6 @@ public class ItemServiceImpl implements ItemService {
         }
 
         Item item = itemRepository.findById(itemId).orElseThrow(() -> new ResourceNotFoundException("Item not found"));
-        flashSaleCacheJob.cacheFlashSaleItem(item); //in case daily cache job failed
         return convertToDTO(item);
     }
 
@@ -101,21 +101,19 @@ public class ItemServiceImpl implements ItemService {
     }
 
     private List<ItemDTO> getItemsFromCache(LocalDate today) {
-        List<String> itemJsonList = redisTemplate.opsForList().range(FLASH_SALE_CACHE_KEY + today, 0, -1);
-        if (itemJsonList == null) return List.of();
-
-        return itemJsonList.stream()
-                .map(json -> {
-                    try {
-                        return objectMapper.readValue(json, Item.class);
-                    } catch (Exception e) {
-                        log.warn("Failed to parse flash sale item JSON: " + e.getMessage());
-                        return null;
-                    }
-                })
-                .filter(Objects::nonNull)
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
+         return redisTemplate.opsForHash().values(FLASH_SALE_CACHE_KEY + today)
+                 .stream()
+                 .map(val -> {
+                     try {
+                         return objectMapper.readValue(val.toString(), Item.class);
+                     } catch (JsonProcessingException e) {
+                         log.warn("Failed to parse flash sale item JSON: " + e.getMessage());
+                         return null;
+                     }
+                 })
+                 .filter(Objects::nonNull)
+                 .map(this::convertToDTO)
+                 .collect(Collectors.toList());
     }
 
 

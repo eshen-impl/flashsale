@@ -4,20 +4,20 @@ spring:
     name: item-service
   data:
     redis:
-#      host: ${SPRING_DATA_REDIS_HOST}
-#      port: ${SPRING_DATA_REDIS_PORT}
-      host: localhost
-      port: 6379
+      host: ${SPRING_DATA_REDIS_HOST}
+      port: ${SPRING_DATA_REDIS_PORT}
+#      host: localhost
+#      port: 6379
 
   mvc:
     log-resolved-exception: true
   datasource:
-#    url: ${SPRING_DATASOURCE_URL}
-#    username: ${SPRING_DATASOURCE_USERNAME}
-#    password: ${SPRING_DATASOURCE_PASSWORD}
-    url: jdbc:mysql://localhost:3306/flashsale_item?useSSL=false&serverTimezone=UTC
-    username: root
-    password: ying1234
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+#    url: jdbc:mysql://localhost:3306/flashsale_item?useSSL=false&serverTimezone=UTC
+#    username: root
+#    password: ying1234
   jpa:
     hibernate:
       ddl-auto: update
@@ -28,13 +28,13 @@ spring:
         dialect: org.hibernate.dialect.MySQL8Dialect
 
 server:
-  #  port: ${SERVER_PORT}
-  port: 8081
+    port: ${SERVER_PORT}
+#  port: 8081
 
 eureka:
   client:
     service-url:
-      #      defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE}
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE}
+#      defaultZone: http://localhost:8761/eureka/
   instance:
     prefer-ip-address: true

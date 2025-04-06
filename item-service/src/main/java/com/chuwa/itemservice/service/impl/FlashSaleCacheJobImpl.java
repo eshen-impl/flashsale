@@ -29,6 +29,7 @@ public class FlashSaleCacheJobImpl implements FlashSaleCacheJob {
 //    @Scheduled(cron = "0 0 0 * * ?") // Runs at midnight
     public String scheduledDailyCache() {
         LocalDate today = LocalDate.now();
+        redisTemplate.delete(FLASH_SALE_CACHE_KEY + today.minusDays(1));
         List<Item> items = itemRepository.findByStartDate(today);
         cacheFlashSaleListAndItems(today, items);
         return "Completed daily job for flash sale items cache.";
@@ -37,30 +38,16 @@ public class FlashSaleCacheJobImpl implements FlashSaleCacheJob {
 
 
     public void cacheFlashSaleListAndItems(LocalDate date, List<Item> items) {
-        String listKey = FLASH_SALE_CACHE_KEY + date;
+        String redisKey = FLASH_SALE_CACHE_KEY + date;
         for (Item item : items) {
             try {
                 String itemJson = objectMapper.writeValueAsString(item);
-                redisTemplate.opsForList().rightPush(listKey, itemJson);
-                redisTemplate.opsForValue().set(FLASH_SALE_CACHE_KEY + item.getItemId(), itemJson);
+                redisTemplate.opsForHash().put(redisKey, item.getItemId(), itemJson);
             } catch (Exception e) {
                 log.warn("Failed to write flash sale item to Redis: " + e.getMessage());
             }
         }
-
         log.info("Cached " + items.size() + " flash sale items for " + date);
-
-    }
-
-    public void cacheFlashSaleItem(Item item) {
-        try {
-            String itemJson = objectMapper.writeValueAsString(item);
-            redisTemplate.opsForValue().set(FLASH_SALE_CACHE_KEY + item.getItemId(), itemJson);
-        } catch (Exception e) {
-            log.warn("Failed to write flash sale item to Redis: " + e.getMessage());
-        }
-
-        log.info("Cached flash sale item: " + item.getItemId() + "-" + item.getItemName());
     }
 
 }

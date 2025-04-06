@@ -15,7 +15,7 @@ import java.util.UUID;
 public class ShippingEvent {
     private ShippingEventType eventType;
     private UUID userId;
-    private UUID orderId;
+    private Long orderId;
 
 
 }

@@ -17,7 +17,7 @@ import java.util.UUID;
 public class OrderEvent {
     private OrderEventType eventType;
     private UUID userId;
-    private UUID orderId;
+    private Long orderId;
 
     private String items;
 

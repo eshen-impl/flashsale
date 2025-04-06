@@ -18,7 +18,7 @@ import java.util.UUID;
 @AllArgsConstructor
 public class OrderDTO {
 
-    private UUID orderId;
+    private Long orderId;
     private UUID userId;
     private OrderStatus orderStatus;
     private BigDecimal totalAmount;

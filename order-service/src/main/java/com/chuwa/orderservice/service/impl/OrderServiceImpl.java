@@ -58,12 +58,11 @@ public class OrderServiceImpl implements OrderService {
         if (items.isEmpty()) throw new EmptyCartException("Nothing in your cart yet. Please add something first!");
 
         //sync call item service to check requested units of each item in cart not exceeding available units
-        validateOrderItems(items);
+//        validateOrderItems(items);
 
         //sync call account service to retrieve and set address and payment method snapshot on order
         setAddressAndPaymentMethod(order, createOrderRequestDTO);
 
-        order.setOrderId(UUID.randomUUID());
         order.setUserId(userId);
         order.setOrderStatus(OrderStatus.CREATED);
         order.setTotalAmount(BigDecimal.valueOf(items.stream()
@@ -117,7 +116,7 @@ public class OrderServiceImpl implements OrderService {
 
         List<CartItem> items = updateRequest.getItems();
         if (items != null) {
-            validateOrderItems(items);
+//            validateOrderItems(items);
             order.setItems(JsonUtil.toJson(items));
             order.setTotalAmount(BigDecimal.valueOf(items.stream()
                     .mapToDouble(item -> item.getQuantity() * item.getUnitPrice())
@@ -162,7 +161,7 @@ public class OrderServiceImpl implements OrderService {
         throw new RuntimeException("Service is unavailable, please try again later.\n" + throwable.getMessage());
     }
 
-    public OrderDTO cancelOrder(UUID orderId) {
+    public OrderDTO cancelOrder(Long orderId) {
         Order order = orderRepository.findByOrderId(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
 
@@ -219,7 +218,7 @@ public class OrderServiceImpl implements OrderService {
         return orders.map(this::convertToDTO);
     }
 
-    public OrderDTO getOrderById(UUID orderId) {
+    public OrderDTO getOrderById(Long orderId) {
         return orderRepository.findByOrderId(orderId)
                 .map(this::convertToDTO)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
@@ -228,7 +227,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public void processPaymentResponse(PaymentEvent event) {
-        UUID orderId = event.getOrderId();
+        Long orderId = event.getOrderId();
         Optional<Order> orderOpt = orderRepository.findByOrderId(orderId);
         if (orderOpt.isEmpty()) return;
 
@@ -250,7 +249,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     public void processShippingResponse(ShippingEvent event) {
-        UUID orderId = event.getOrderId();
+        Long orderId = event.getOrderId();
         Optional<Order> orderOpt = orderRepository.findByOrderId(orderId);
         if (orderOpt.isEmpty()) return;
 
@@ -263,27 +262,27 @@ public class OrderServiceImpl implements OrderService {
 
     }
 
-    private void validateOrderItems(List<CartItem> orderItems) {
-        List<String> itemIds = orderItems.stream().map(CartItem::getItemId).collect(Collectors.toList());
-
-        Map<String, Integer> availableUnits = itemClient.getAvailableUnits(itemIds);
-
-        List<String> insufficientItems = new ArrayList<>();
-
-        for (CartItem item : orderItems) {
-            int requestedQty = item.getQuantity();
-            int availableQty = availableUnits.getOrDefault(item.getItemId(), 0);
-
-            if (requestedQty > availableQty) {
-                insufficientItems.add("Item: " + item.getItemId() + " (Requested: "
-                        + requestedQty + ", Available: " + availableQty + ")");
-            }
-        }
-
-        if (!insufficientItems.isEmpty()) {
-            throw new InsufficientStockException("Insufficient stock for the following items: " + String.join("; ", insufficientItems));
-        }
-    }
+//    private void validateOrderItems(List<CartItem> orderItems) {
+//        List<Long> itemIds = orderItems.stream().map(CartItem::getItemId).collect(Collectors.toList());
+//
+//        Map<String, Integer> availableUnits = itemClient.getAvailableUnits(itemIds);
+//
+//        List<String> insufficientItems = new ArrayList<>();
+//
+//        for (CartItem item : orderItems) {
+//            int requestedQty = item.getQuantity();
+//            int availableQty = availableUnits.getOrDefault(item.getItemId(), 0);
+//
+//            if (requestedQty > availableQty) {
+//                insufficientItems.add("Item: " + item.getItemId() + " (Requested: "
+//                        + requestedQty + ", Available: " + availableQty + ")");
+//            }
+//        }
+//
+//        if (!insufficientItems.isEmpty()) {
+//            throw new InsufficientStockException("Insufficient stock for the following items: " + String.join("; ", insufficientItems));
+//        }
+//    }
 
     private void setAddressAndPaymentMethod(Order order, CreateOrderRequestDTO orderRequest){
 

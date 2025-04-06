@@ -14,7 +14,7 @@ import java.util.UUID;
 @AllArgsConstructor
 public class ValidatePaymentRequestDTO {
 
-    private UUID orderId;
+    private Long orderId;
     private UUID transactionKey;
     private Long paymentMethodId;
 

@@ -13,7 +13,7 @@ import java.util.UUID;
 @Getter
 @Setter
 public class RefundRequestDTO {
-    private UUID orderId;
+    private Long orderId;
     private UUID transactionKey;
     private BigDecimal requestRefundAmount;
 }

@@ -13,6 +13,6 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UpdateOrderRequestDTO extends CreateOrderRequestDTO{
-    UUID orderId;
+    Long orderId;
     List<CartItem> items;
 }

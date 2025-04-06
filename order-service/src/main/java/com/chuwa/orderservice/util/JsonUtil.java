@@ -1,5 +1,6 @@
 package com.chuwa.orderservice.util;
 import com.chuwa.orderservice.payload.CartItem;
+import com.chuwa.orderservice.payload.FlashSaleItem;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -32,6 +33,14 @@ public class JsonUtil {
             return objectMapper.readValue(jsonString, CartItem.class);
         } catch (Exception e) {
             throw new RuntimeException("Error deserializing CartItem", e);
+        }
+    }
+
+    public static FlashSaleItem fromJsonToFlashSaleItem(String jsonString) {
+        try {
+            return objectMapper.readValue(jsonString, FlashSaleItem.class);
+        } catch (Exception e) {
+            throw new RuntimeException("Error deserializing FlashSaleItem", e);
         }
     }
 }

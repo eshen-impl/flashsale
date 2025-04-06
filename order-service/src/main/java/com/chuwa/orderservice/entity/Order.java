@@ -3,6 +3,7 @@ package com.chuwa.orderservice.entity;
 import com.chuwa.orderservice.enums.OrderStatus;
 import com.chuwa.orderservice.enums.PaymentRefundStatus;
 import com.chuwa.orderservice.enums.PaymentStatus;
+import com.chuwa.orderservice.util.IdGenerator;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
@@ -24,8 +25,13 @@ import java.util.UUID;
 public class Order {
 
     @Id
-    @Column(nullable = false, updatable = false, columnDefinition = "BINARY(16)")
-    private UUID orderId;
+    @Column(updatable = false, nullable = false)
+    private Long orderId;
+
+    @PrePersist
+    public void generateId() {
+        this.orderId = IdGenerator.generateId();
+    }
 
     @Column(name = "user_id", nullable = false, columnDefinition = "BINARY(16)")
     private UUID userId;
@@ -72,6 +78,9 @@ public class Order {
     @Column
     private BigDecimal refundedAmount;
 
+    @Column
+    private Long flashSaleId;
+
 
     public void setCurrency(Currency currency) {
         this.currency = currency.getCurrencyCode();
@@ -81,11 +90,11 @@ public class Order {
         return Currency.getInstance(this.currency);
     }
 
-    public UUID getOrderId() {
+    public Long getOrderId() {
         return orderId;
     }
 
-    public void setOrderId(UUID orderId) {
+    public void setOrderId(Long orderId) {
         this.orderId = orderId;
     }
 
@@ -191,5 +200,13 @@ public class Order {
 
     public void setRefundedAmount(BigDecimal refundedAmount) {
         this.refundedAmount = refundedAmount;
+    }
+
+    public Long getFlashSaleId() {
+        return flashSaleId;
+    }
+
+    public void setFlashSaleId(Long flashSaleId) {
+        this.flashSaleId = flashSaleId;
     }
 }

@@ -14,7 +14,7 @@ import java.io.Serializable;
 @Setter
 @JsonTypeName("CartItem")
 public class CartItem implements Serializable {
-    private String itemId;
+    private Long itemId;
     private String itemName;
     private int quantity;
     private double unitPrice;

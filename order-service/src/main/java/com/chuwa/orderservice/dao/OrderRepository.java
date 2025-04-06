@@ -12,9 +12,11 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface OrderRepository extends JpaRepository<Order, UUID> {
-    Optional<Order> findByOrderId(UUID orderId);
+public interface OrderRepository extends JpaRepository<Order, Long> {
+    Optional<Order> findByOrderId(Long orderId);
 
     Page<Order> findOrdersByUserId(UUID userId, Pageable pageable);
+
+    Optional<Order> findOrderByUserIdAndFlashSaleId(UUID userId, Long flashSaleId);
 }
 

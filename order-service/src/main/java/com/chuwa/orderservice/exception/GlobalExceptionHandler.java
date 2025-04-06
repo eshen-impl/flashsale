@@ -35,15 +35,10 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(response, HttpStatus.METHOD_NOT_ALLOWED);
     }
 
-    @ExceptionHandler(InsufficientStockException.class)
-    public ResponseEntity<Map<String, String>> handleInsufficientStockException(InsufficientStockException ex) {
-        Map<String, String> response = new HashMap<>();
-        response.put("error", ex.getMessage());
-        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
-    }
-
-    @ExceptionHandler(EmptyCartException.class)
-    public ResponseEntity<Map<String, String>> handleEmptyCartExceptionException(EmptyCartException ex) {
+    @ExceptionHandler({InsufficientStockException.class,
+                        NotOnSaleException.class,
+                        EmptyCartException.class})
+    public ResponseEntity<Map<String, String>> handlePlaceOrderException(Exception ex) {
         Map<String, String> response = new HashMap<>();
         response.put("error", ex.getMessage());
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);

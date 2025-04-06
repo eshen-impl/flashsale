@@ -15,10 +15,10 @@ import java.util.UUID;
 public interface OrderService {
     OrderDTO createOrder(UUID userId, CreateOrderRequestDTO createOrderRequestDTO);
     OrderDTO updateOrder(UpdateOrderRequestDTO updateRequest);
-    OrderDTO cancelOrder(UUID orderId);
+    OrderDTO cancelOrder(Long orderId);
     OrderDTO refundOrder(RefundRequestDTO refundRequestDTO);
     Page<OrderDTO> getUserOrders(int page, int size, UUID userId);
-    OrderDTO getOrderById(UUID orderId);
+    OrderDTO getOrderById(Long orderId);
     void processPaymentResponse(PaymentEvent response);
     void processShippingResponse(ShippingEvent event);
 

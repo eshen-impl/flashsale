@@ -17,7 +17,7 @@ import java.util.UUID;
 public class PaymentEvent {
     private PaymentEventType eventType;
     private UUID userId;
-    private UUID orderId;
+    private Long orderId;
 
     private BigDecimal refundedAmount;
 

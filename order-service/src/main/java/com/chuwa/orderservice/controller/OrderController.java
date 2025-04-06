@@ -36,7 +36,7 @@ public class OrderController {
     @Operation(summary = "Cancel an existing order.",
             description = "Order status can changed to be cancelled before shipping. "
                     + "Required to be authenticated (have signed in)")
-    public ResponseEntity<OrderDTO> cancelOrder(@RequestParam("orderId") UUID orderId) {
+    public ResponseEntity<OrderDTO> cancelOrder(@RequestParam("orderId") Long orderId) {
         return ResponseEntity.ok(orderService.cancelOrder(orderId));
     }
 
@@ -68,7 +68,7 @@ public class OrderController {
     @GetMapping("/{orderId}")
     @Operation(summary = "Get a specific order and its details for the current user.",
             description =  "Required to be authenticated (have signed in) ")
-    public ResponseEntity<OrderDTO> getOrder(@PathVariable("orderId") UUID orderId) {
+    public ResponseEntity<OrderDTO> getOrder(@PathVariable("orderId") Long orderId) {
         return ResponseEntity.ok(orderService.getOrderById(orderId));
     }
 }

@@ -20,6 +20,7 @@
     <module>gateway-service</module>
     <module>item-service</module>
     <module>order-service</module>
+    <module>flashsale-service</module>
 <!--    <module>payment-service</module>-->
     <module>account-service</module>
 <!--    <module>cart-service</module>-->

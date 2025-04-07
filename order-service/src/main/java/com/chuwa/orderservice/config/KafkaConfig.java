@@ -2,11 +2,11 @@ package com.chuwa.orderservice.config;
 
 
 
+import com.chuwa.orderservice.payload.FlashSaleOrderRequestEvent;
 import com.chuwa.orderservice.payload.OrderEvent;
 import com.chuwa.orderservice.payload.PaymentEvent;
 import com.chuwa.orderservice.payload.ShippingEvent;
 import org.apache.kafka.clients.admin.NewTopic;
-import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
@@ -63,6 +63,15 @@ public class KafkaConfig {
     }
 
     @Bean
+    @Qualifier("shippingEventListenerFactory")
+    public ConcurrentKafkaListenerContainerFactory<String, ShippingEvent> shippingEventListenerFactory(
+            @Qualifier("shippingEventConsumerFactory") ConsumerFactory<String, ShippingEvent> consumerFactory) {
+        ConcurrentKafkaListenerContainerFactory<String, ShippingEvent> factory = new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(consumerFactory);
+        return factory;
+    }
+
+    @Bean
     @Qualifier("paymentEventConsumerFactory")
     public ConsumerFactory<String, PaymentEvent> paymentEventConsumerFactory() {
         JsonDeserializer<PaymentEvent> deserializer = new JsonDeserializer<>(PaymentEvent.class, false);
@@ -75,16 +84,6 @@ public class KafkaConfig {
         );
     }
 
-
-    @Bean
-    @Qualifier("shippingEventListenerFactory")
-    public ConcurrentKafkaListenerContainerFactory<String, ShippingEvent> shippingEventListenerFactory(
-            @Qualifier("shippingEventConsumerFactory") ConsumerFactory<String, ShippingEvent> consumerFactory) {
-        ConcurrentKafkaListenerContainerFactory<String, ShippingEvent> factory = new ConcurrentKafkaListenerContainerFactory<>();
-        factory.setConsumerFactory(consumerFactory);
-        return factory;
-    }
-
     @Bean
     @Qualifier("paymentEventListenerFactory")
     public ConcurrentKafkaListenerContainerFactory<String, PaymentEvent> paymentEventListenerFactory(
@@ -95,10 +94,39 @@ public class KafkaConfig {
     }
 
     @Bean
+    @Qualifier("flashsaleEventConsumerFactory")
+    public ConsumerFactory<String, FlashSaleOrderRequestEvent> flashsaleEventConsumerFactory() {
+        JsonDeserializer<FlashSaleOrderRequestEvent> deserializer = new JsonDeserializer<>(FlashSaleOrderRequestEvent.class, false);
+        deserializer.addTrustedPackages("*");
+
+        return new DefaultKafkaConsumerFactory<>(
+                consumerConfigs(),
+                new StringDeserializer(),
+                deserializer
+        );
+    }
+
+    @Bean
+    @Qualifier("flashsaleEventListenerFactory")
+    public ConcurrentKafkaListenerContainerFactory<String, FlashSaleOrderRequestEvent> flashsaleEventListenerFactory(
+            @Qualifier("flashsaleEventConsumerFactory") ConsumerFactory<String, FlashSaleOrderRequestEvent> consumerFactory) {
+        ConcurrentKafkaListenerContainerFactory<String, FlashSaleOrderRequestEvent> factory = new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(consumerFactory);
+        return factory;
+    }
+
+
+
+
+    @Bean
     public NewTopic orderToShippingTopic() {
         return new NewTopic("order-to-shipping", 3, (short) 1);
     }
 
+    @Bean
+    public NewTopic orderToFlashsaleTopic() {
+        return new NewTopic("order-to-flashsale", 3, (short) 1);
+    }
 }
 
 

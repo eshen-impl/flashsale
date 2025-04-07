@@ -1,9 +1,8 @@
-package com.chuwa.orderservice.controller;
+package com.chuwa.flashsaleservice.controller;
 
 
-import com.chuwa.orderservice.payload.OrderDTO;
-import com.chuwa.orderservice.service.FlashSaleOrderService;
-import com.chuwa.orderservice.service.OrderService;
+import com.chuwa.flashsaleservice.payload.FlashSaleOrderNotification;
+import com.chuwa.flashsaleservice.service.FlashSaleOrderService;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,8 +21,8 @@ public class FlashSaleOrderController {
 
     @PostMapping("/submit")
     @Operation(summary = "Submit an order for a flash sale item. ",
-            description = "Return details of this order. " + "Required to be authenticated (have signed in) ")
-    public ResponseEntity<OrderDTO> submitOrder(@RequestParam("flashSaleId") Long flashSaleId, @RequestHeader("X-User-Id") String userIdString) {
+            description = "If success, return details of this order. " + "Required to be authenticated (have signed in) ")
+    public ResponseEntity<FlashSaleOrderNotification> submitOrder(@RequestParam("flashSaleId") Long flashSaleId, @RequestHeader("X-User-Id") String userIdString) {
         UUID userId = UUID.fromString(userIdString);
         return ResponseEntity.ok(flashSaleOrderService.submitOrder(flashSaleId, userId));
     }

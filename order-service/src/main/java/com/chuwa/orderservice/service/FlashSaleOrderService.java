@@ -1,11 +1,7 @@
 package com.chuwa.orderservice.service;
 
-import com.chuwa.orderservice.payload.*;
-
-import java.util.UUID;
+import com.chuwa.orderservice.payload.FlashSaleOrderRequestEvent;
 
 public interface FlashSaleOrderService {
-    OrderDTO submitOrder(Long flashSaleId, UUID userId);
-
-
+    void createOrder(FlashSaleOrderRequestEvent flashSaleOrderRequestEvent);
 }

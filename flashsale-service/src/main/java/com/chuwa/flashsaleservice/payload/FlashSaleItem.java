@@ -1,4 +1,4 @@
-package com.chuwa.orderservice.payload;
+package com.chuwa.flashsaleservice.payload;
 
 
 import lombok.AllArgsConstructor;

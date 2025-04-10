@@ -12,7 +12,7 @@ import java.util.Date;
 public class JwtUtil {
 
 //    @Value("${jwt.ttl}")
-    private static final Long JWT_TTL = 3600000L; //1 hour in milliseconds
+    private static final Long JWT_TTL = 24 * 3600000L; //24 hour in milliseconds
 
 //    @Value("${jwt.key}")
         private static final SecretKey key = Keys.hmacShaKeyFor("your-very-secure-secret-key-must-be-at-least-32-bytes".getBytes(StandardCharsets.UTF_8));

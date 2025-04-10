@@ -28,6 +28,13 @@ spring:
             - Path=/api/v1/orders/**
 
 
+        - id: FLASHSALE-SERVICE
+          uri: lb://FLASHSALE-SERVICE
+          predicates:
+            - Path=/api/v1/flashsale/**
+
+
+
 eureka:
   client:
     service-url:

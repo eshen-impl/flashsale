@@ -16,5 +16,7 @@ public interface ItemService {
     Page<FlashSaleItemDTO> getAllItems(Pageable pageable);
     List<FlashSaleItemDTO> getTodayFlashSaleItems();
 
+    Boolean tryDecrementStock(Long flashSaleId);
+
 //    Map<String, Integer> getAvailableUnits(List<String> itemIds);
 }

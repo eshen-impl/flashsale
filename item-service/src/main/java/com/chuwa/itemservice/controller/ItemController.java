@@ -100,4 +100,10 @@ public class ItemController {
 
         return ResponseEntity.ok(flashSaleCacheJob.scheduledDailyCache());
     }
+
+    @PutMapping("/mgmt/flashsale/{id}/decrement-stock")
+    public ResponseEntity<Boolean> decrementStock(@PathVariable("id") Long id) {
+        Boolean success = itemService.tryDecrementStock(id);
+        return ResponseEntity.ok(success);
+    }
 }

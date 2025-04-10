@@ -13,6 +13,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -27,15 +28,12 @@ public class ItemServiceImpl implements ItemService {
     private final StringRedisTemplate redisTemplate;
     private final ObjectMapper objectMapper;
 
-    private final FlashSaleCacheJob flashSaleCacheJob;
-
-    private static final String FLASH_SALE_CACHE_KEY = "flashsale:"; // Redis key prefix
+    private static final String FLASH_SALE_ITEM_INFO_KEY = "flashsale:item:info:";
 
     public ItemServiceImpl(FlashSaleItemRepository flashSaleItemRepository, StringRedisTemplate redisTemplate, ObjectMapper objectMapper, FlashSaleCacheJob flashSaleCacheJob) {
         this.flashSaleItemRepository = flashSaleItemRepository;
         this.redisTemplate = redisTemplate;
         this.objectMapper = objectMapper;
-        this.flashSaleCacheJob = flashSaleCacheJob;
     }
 
     public FlashSaleItemDTO createItem(FlashSaleItemDTO flashSaleItemDTO) {
@@ -53,7 +51,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
     public FlashSaleItemDTO getFlashSaleItemById(Long flashSaleId) {
-        String cachedItem = (String) redisTemplate.opsForHash().get(FLASH_SALE_CACHE_KEY + LocalDate.now(), String.valueOf(flashSaleId));
+        String cachedItem = (String) redisTemplate.opsForHash().get(FLASH_SALE_ITEM_INFO_KEY + LocalDate.now(), String.valueOf(flashSaleId));
 
         if (cachedItem != null) {
             try {
@@ -96,16 +94,17 @@ public class ItemServiceImpl implements ItemService {
             return cachedItems;
         }
 
-        List<FlashSaleItem> flashSaleItems = flashSaleItemRepository.findBySaleDate(today);
+        throw new ResourceNotFoundException("No flash sale items found for today...");
+    }
 
-        // Cache them for later use in case daily cache job failed
-        flashSaleCacheJob.cacheFlashSaleListAndItems(today, flashSaleItems);
-
-        return flashSaleItems.stream().map(this::convertToDTO).collect(Collectors.toList());
+    @Override
+    @Transactional
+    public Boolean tryDecrementStock(Long flashSaleId) {
+        return flashSaleItemRepository.decrementStock(flashSaleId) > 0;
     }
 
     private List<FlashSaleItemDTO> getItemsFromCache(LocalDate today) {
-         return redisTemplate.opsForHash().values(FLASH_SALE_CACHE_KEY + today)
+         return redisTemplate.opsForHash().values(FLASH_SALE_ITEM_INFO_KEY + today)
                  .stream()
                  .map(val -> {
                      try {

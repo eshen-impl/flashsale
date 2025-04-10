@@ -82,7 +82,7 @@ public class AuthServiceImpl implements AuthService {
             String token = JwtUtil.generateToken(UUIDUtil.encodeUUID(user.getId()));
 
             UserSession userSession = new UserSession(customUserDetails.getUsername(), (Set<SimpleGrantedAuthority>) customUserDetails.getAuthorities());
-            redisUserSessionService.saveUserSession(UUIDUtil.encodeUUID(user.getId()), userSession, 60L); // 1-hour expiration
+            redisUserSessionService.saveUserSession(UUIDUtil.encodeUUID(user.getId()), userSession, 24 * 60L); // 24-hour expiration
 
             HashMap<String, String> map = new HashMap<>();
             map.put("token", token);

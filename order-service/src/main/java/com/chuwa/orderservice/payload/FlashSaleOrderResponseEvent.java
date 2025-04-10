@@ -1,5 +1,6 @@
 package com.chuwa.orderservice.payload;
 
+import com.chuwa.orderservice.enums.FlashSaleOrderStatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -10,10 +11,8 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class FlashSaleOrderResponseEvent {
-    private enum Status {
-        PENDING,
-        CONFIRMED,
-        FAILED
-    }
+    private FlashSaleOrderStatus status;
     private Long orderId;
+    private String message;
+
 }

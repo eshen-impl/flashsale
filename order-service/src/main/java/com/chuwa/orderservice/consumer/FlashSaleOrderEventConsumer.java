@@ -18,7 +18,7 @@ public class FlashSaleOrderEventConsumer {
 
 
     @KafkaListener(topics = "flashsale-to-order", groupId = "order-group",
-            containerFactory = "flashsaleEventListenerFactory")
+            containerFactory = "flashSaleEventListenerFactory")
     public void listenShippingUpdates(FlashSaleOrderRequestEvent event) {
 
         try {
@@ -26,7 +26,7 @@ public class FlashSaleOrderEventConsumer {
             flashSaleOrderService.createOrder(event);
             log.info("Flashsale event processed successfully for Flash Sale ID: {}, User ID: {}", event.getFlashSaleId(), event.getUserId());
         } catch (Exception e) {
-            log.error("Error deserializing or processing shipping response: {}", e.getMessage(), e);
+            log.error("Error deserializing or processing flashsale response: {}", e.getMessage(), e);
         }
     }
 }

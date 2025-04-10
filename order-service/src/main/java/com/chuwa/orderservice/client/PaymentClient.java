@@ -1,5 +1,6 @@
 package com.chuwa.orderservice.client;
 
+import com.chuwa.orderservice.config.SecuredFeignConfig;
 import com.chuwa.orderservice.payload.RefundRequestDTO;
 import com.chuwa.orderservice.payload.ValidatePaymentRequestDTO;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -12,7 +13,7 @@ import java.util.Map;
 import java.util.UUID;
 
 
-@FeignClient(name = "payment-service", path = "/api/v1/payments")
+@FeignClient(name = "payment-service", path = "/api/v1/payments", configuration = SecuredFeignConfig.class)
 public interface PaymentClient {
     @PostMapping("/validate")
     Map<String, String> initiatePayment(@RequestBody ValidatePaymentRequestDTO validatePaymentRequestDTO);

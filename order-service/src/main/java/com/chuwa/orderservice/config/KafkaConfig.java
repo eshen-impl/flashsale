@@ -2,12 +2,8 @@ package com.chuwa.orderservice.config;
 
 
 
-import com.chuwa.orderservice.payload.FlashSaleOrderRequestEvent;
-import com.chuwa.orderservice.payload.OrderEvent;
-import com.chuwa.orderservice.payload.PaymentEvent;
-import com.chuwa.orderservice.payload.ShippingEvent;
+import com.chuwa.orderservice.payload.*;
 import org.apache.kafka.clients.admin.NewTopic;
-import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -19,7 +15,6 @@ import org.springframework.kafka.core.*;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.kafka.support.serializer.JsonSerializer;
 
-import java.util.HashMap;
 import java.util.Map;
 
 @Configuration
@@ -27,19 +22,35 @@ public class KafkaConfig {
     @Value("${spring.kafka.bootstrap-servers}")
     private String bootstrapServers;
 
-    @Bean
-    public ProducerFactory<String, OrderEvent> producerFactory() {
-        Map<String, Object> config = new HashMap<>();
-        config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
-        config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
-        config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
-        return new DefaultKafkaProducerFactory<>(config);
+    private Map<String, Object> producerConfigs() {
+        return Map.of(
+                "bootstrap.servers", bootstrapServers,
+                "key.serializer", StringSerializer.class,
+                "value.serializer", JsonSerializer.class
+        );
     }
 
-    @Bean
-    public KafkaTemplate<String, OrderEvent> kafkaTemplate() {
-        return new KafkaTemplate<>(producerFactory());
+    @Bean(name = "orderEventProducerFactory")
+    public ProducerFactory<String, OrderEvent> orderEventProducerFactory() {
+        return new DefaultKafkaProducerFactory<>(producerConfigs());
     }
+
+    @Bean(name = "orderEventKafkaTemplate")
+    public KafkaTemplate<String, OrderEvent> orderEventKafkaTemplate() {
+        return new KafkaTemplate<>(orderEventProducerFactory());
+    }
+
+    @Bean(name = "flashSaleOrderEventProducerFactory")
+    public ProducerFactory<String, FlashSaleOrderResponseEvent> flashSaleOrderEventProducerFactory() {
+        return new DefaultKafkaProducerFactory<>(producerConfigs());
+    }
+
+    @Bean(name = "flashSaleOrderEventKafkaTemplate")
+    public KafkaTemplate<String, FlashSaleOrderResponseEvent> flashSaleOrderEventKafkaTemplate() {
+        return new KafkaTemplate<>(flashSaleOrderEventProducerFactory());
+    }
+
+
 
     private Map<String, Object> consumerConfigs() {
         return Map.of(
@@ -49,8 +60,7 @@ public class KafkaConfig {
         );
     }
 
-    @Bean
-    @Qualifier("shippingEventConsumerFactory")
+    @Bean(name = "shippingEventConsumerFactory")
     public ConsumerFactory<String, ShippingEvent> shippingEventConsumerFactory() {
         JsonDeserializer<ShippingEvent> deserializer = new JsonDeserializer<>(ShippingEvent.class, false);
         deserializer.addTrustedPackages("*");
@@ -62,8 +72,7 @@ public class KafkaConfig {
         );
     }
 
-    @Bean
-    @Qualifier("shippingEventListenerFactory")
+    @Bean(name = "shippingEventListenerFactory")
     public ConcurrentKafkaListenerContainerFactory<String, ShippingEvent> shippingEventListenerFactory(
             @Qualifier("shippingEventConsumerFactory") ConsumerFactory<String, ShippingEvent> consumerFactory) {
         ConcurrentKafkaListenerContainerFactory<String, ShippingEvent> factory = new ConcurrentKafkaListenerContainerFactory<>();
@@ -71,8 +80,7 @@ public class KafkaConfig {
         return factory;
     }
 
-    @Bean
-    @Qualifier("paymentEventConsumerFactory")
+    @Bean(name = "paymentEventConsumerFactory")
     public ConsumerFactory<String, PaymentEvent> paymentEventConsumerFactory() {
         JsonDeserializer<PaymentEvent> deserializer = new JsonDeserializer<>(PaymentEvent.class, false);
         deserializer.addTrustedPackages("*");
@@ -84,8 +92,7 @@ public class KafkaConfig {
         );
     }
 
-    @Bean
-    @Qualifier("paymentEventListenerFactory")
+    @Bean(name = "paymentEventListenerFactory")
     public ConcurrentKafkaListenerContainerFactory<String, PaymentEvent> paymentEventListenerFactory(
             @Qualifier("paymentEventConsumerFactory") ConsumerFactory<String, PaymentEvent> consumerFactory) {
         ConcurrentKafkaListenerContainerFactory<String, PaymentEvent> factory = new ConcurrentKafkaListenerContainerFactory<>();
@@ -93,9 +100,8 @@ public class KafkaConfig {
         return factory;
     }
 
-    @Bean
-    @Qualifier("flashsaleEventConsumerFactory")
-    public ConsumerFactory<String, FlashSaleOrderRequestEvent> flashsaleEventConsumerFactory() {
+    @Bean(name = "flashSaleEventConsumerFactory")
+    public ConsumerFactory<String, FlashSaleOrderRequestEvent> flashSaleEventConsumerFactory() {
         JsonDeserializer<FlashSaleOrderRequestEvent> deserializer = new JsonDeserializer<>(FlashSaleOrderRequestEvent.class, false);
         deserializer.addTrustedPackages("*");
 
@@ -106,10 +112,9 @@ public class KafkaConfig {
         );
     }
 
-    @Bean
-    @Qualifier("flashsaleEventListenerFactory")
-    public ConcurrentKafkaListenerContainerFactory<String, FlashSaleOrderRequestEvent> flashsaleEventListenerFactory(
-            @Qualifier("flashsaleEventConsumerFactory") ConsumerFactory<String, FlashSaleOrderRequestEvent> consumerFactory) {
+    @Bean(name = "flashSaleEventListenerFactory")
+    public ConcurrentKafkaListenerContainerFactory<String, FlashSaleOrderRequestEvent> flashSaleEventListenerFactory(
+            @Qualifier("flashSaleEventConsumerFactory") ConsumerFactory<String, FlashSaleOrderRequestEvent> consumerFactory) {
         ConcurrentKafkaListenerContainerFactory<String, FlashSaleOrderRequestEvent> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(consumerFactory);
         return factory;

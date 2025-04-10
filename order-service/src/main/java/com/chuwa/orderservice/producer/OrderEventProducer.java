@@ -2,6 +2,7 @@ package com.chuwa.orderservice.producer;
 
 
 import com.chuwa.orderservice.payload.OrderEvent;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
@@ -9,7 +10,10 @@ import org.springframework.stereotype.Component;
 public class OrderEventProducer {
     private final KafkaTemplate<String, OrderEvent> kafkaTemplate;
 
-    public OrderEventProducer(KafkaTemplate<String, OrderEvent> kafkaTemplate) {
+    public OrderEventProducer(
+            @Qualifier("orderEventKafkaTemplate")
+            KafkaTemplate<String, OrderEvent> kafkaTemplate
+    ) {
         this.kafkaTemplate = kafkaTemplate;
     }
 

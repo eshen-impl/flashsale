@@ -5,23 +5,22 @@ import feign.RequestTemplate;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 @Component
 public class FeignClientInterceptor implements RequestInterceptor  {
 
-    private final HttpServletRequest request;
-
-    public FeignClientInterceptor(HttpServletRequest request) {
-        this.request = request;
-    }
-
     @Override
     public void apply(RequestTemplate template) {
-        String token = request.getHeader("Authorization");
-        if (StringUtils.hasText(token) && token.startsWith("Bearer ")) {
-            template.header("Authorization", token);  // Forward the JWT token
+        ServletRequestAttributes attrs = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+        if (attrs != null) {
+            HttpServletRequest request = attrs.getRequest();
+            String token = request.getHeader("X-User-Id");
+            if (StringUtils.hasText(token)) {
+                template.header("X-User-Id", token);
+            }
         }
     }
-
 
 }

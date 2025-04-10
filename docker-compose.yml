@@ -34,6 +34,8 @@ services:
     container_name: account-service
 #    ports:
 #      - "8080:8080"
+    volumes:
+      - ./docker-data/token:/app/output
     environment:
       - SERVER_PORT=8080
       - SPRING_DATASOURCE_URL=jdbc:mysql://host.docker.internal:3306/emart_account?useSSL=false&serverTimezone=UTC
@@ -61,6 +63,7 @@ services:
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
       - SPRING_DATA_REDIS_HOST=host.docker.internal
       - SPRING_DATA_REDIS_PORT=6379
+      - TZ=America/Los_Angeles
     depends_on:
       - eureka-server
 #      - redis
@@ -100,6 +103,7 @@ services:
       - SPRING_DATA_REDIS_HOST=host.docker.internal
       - SPRING_DATA_REDIS_PORT=6379
       - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9091
+      - TZ=America/Los_Angeles
     depends_on:
       eureka-server:
         condition: service_started
@@ -151,6 +155,30 @@ services:
 #        condition: service_healthy
 #    networks:
 #      - my-network
+
+  flashsale-service:
+    build: ./flashsale-service
+    container_name: flashsale-service
+#    ports:
+#      - "8086:8086"
+    environment:
+      - SERVER_PORT=8086
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - SPRING_DATA_REDIS_HOST=host.docker.internal
+      - SPRING_DATA_REDIS_PORT=6379
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9091
+      - TZ=America/Los_Angeles
+    depends_on:
+      eureka-server:
+        condition: service_started
+      #      redis:
+      #        condition: service_started
+      kafka:
+        condition: service_healthy
+    networks:
+      - my-network
+
+
 
 #  redis:
 #    image: redis:alpine

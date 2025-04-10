@@ -1,5 +1,6 @@
 package com.chuwa.flashsaleservice.exception;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
@@ -11,6 +12,7 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 import java.util.HashMap;
 import java.util.Map;
 
+@Slf4j
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -36,8 +38,10 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler({InsufficientStockException.class,
-                        NotOnSaleException.class})
+                        NotOnSaleException.class,
+                        ExceedPurchaseLimitException.class})
     public ResponseEntity<Map<String, String>> handlePlaceOrderException(Exception ex) {
+        log.warn(ex.getMessage());
         Map<String, String> response = new HashMap<>();
         response.put("error", ex.getMessage());
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);

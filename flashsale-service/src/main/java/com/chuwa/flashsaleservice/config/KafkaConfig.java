@@ -45,8 +45,7 @@ public class KafkaConfig {
         );
     }
 
-    @Bean
-    @Qualifier("orderEventConsumerFactory")
+    @Bean(name = "orderEventConsumerFactory")
     public ConsumerFactory<String, FlashSaleOrderResponseEvent> orderEventConsumerFactory() {
         JsonDeserializer<FlashSaleOrderResponseEvent> deserializer = new JsonDeserializer<>(FlashSaleOrderResponseEvent.class, false);
         deserializer.addTrustedPackages("*");
@@ -59,8 +58,7 @@ public class KafkaConfig {
     }
 
 
-    @Bean
-    @Qualifier("orderEventListenerFactory")
+    @Bean(name = "orderEventListenerFactory")
     public ConcurrentKafkaListenerContainerFactory<String, FlashSaleOrderResponseEvent> orderEventListenerFactory(
             @Qualifier("orderEventConsumerFactory") ConsumerFactory<String, FlashSaleOrderResponseEvent> consumerFactory) {
         ConcurrentKafkaListenerContainerFactory<String, FlashSaleOrderResponseEvent> factory = new ConcurrentKafkaListenerContainerFactory<>();

@@ -1,6 +1,8 @@
 package com.chuwa.flashsaleservice.service.impl;
 
-import com.chuwa.flashsaleservice.enums.Status;
+import com.chuwa.flashsaleservice.enums.FlashSaleOrderStatus;
+import com.chuwa.flashsaleservice.exception.ExceedPurchaseLimitException;
+import com.chuwa.flashsaleservice.exception.InsufficientStockException;
 import com.chuwa.flashsaleservice.exception.NotOnSaleException;
 import com.chuwa.flashsaleservice.exception.ResourceNotFoundException;
 import com.chuwa.flashsaleservice.payload.*;
@@ -23,7 +25,9 @@ public class FlashSaleOrderServiceImpl implements FlashSaleOrderService {
     private final StringRedisTemplate redisTemplate;
     private final ObjectMapper objectMapper;
     private final FlashSaleOrderEventProducer flashSaleOrderEventProducer;
-    private static final String FLASH_SALE_CACHE_KEY = "flashsale:";
+    private static final String FLASH_SALE_ITEM_INFO_KEY = "flashsale:item:info:";
+    private static final String FLASH_SALE_ITEM_STOCK_KEY = "flashsale:item:stock:";
+    private static final String FLASH_SALE_ITEM_ORDER_KEY = "flashsale:item:order:";
 
 
     public FlashSaleOrderServiceImpl(StringRedisTemplate redisTemplate, ObjectMapper objectMapper, FlashSaleOrderEventProducer flashSaleOrderEventProducer) {
@@ -34,23 +38,60 @@ public class FlashSaleOrderServiceImpl implements FlashSaleOrderService {
 
     @Override
     public FlashSaleOrderNotification submitOrder(Long flashSaleId, UUID userId) {
-        //get item details from redis
-        String cachedItem = (String) redisTemplate.opsForHash().get(FLASH_SALE_CACHE_KEY + LocalDate.now(), String.valueOf(flashSaleId));
-        FlashSaleItem item = cachedItem != null ? JsonUtil.fromJsonToFlashSaleItem(cachedItem) : null;
-        if (item == null) throw new ResourceNotFoundException("Flash Sale item not found!");
+        LocalDate today = LocalDate.now();
+        String stockKey = FLASH_SALE_ITEM_STOCK_KEY + today;
+        String itemKey = FLASH_SALE_ITEM_INFO_KEY + today;
+        String orderKey = FLASH_SALE_ITEM_ORDER_KEY + today;
+        String flashSaleIdString = String.valueOf(flashSaleId);
+        String userIdString = String.valueOf(userId);
 
-        //check if not in sale time window
-        if (isItemNotInSaleWindow(item)) throw new NotOnSaleException("This is item is not on sale now! Please come back later!");
+        try {
+            //pre check with redis stock to short-circuits early
+            String precheckRemain = (String) redisTemplate.opsForHash().get(stockKey, flashSaleIdString);
+            if (precheckRemain == null || Long.parseLong(precheckRemain) <= 0) {
+                return new FlashSaleOrderNotification(FlashSaleOrderStatus.INSUFFICIENT_STOCK,
+                        "Item is out of stock - FlashSaleId: " + flashSaleId);
+            }
 
-        //check if already placed order successfully on the same flash sale item
-        // repository -> replace with redis
+            //get item details from redis
+            String cachedItem = (String) redisTemplate.opsForHash().get(itemKey, flashSaleIdString);
+            FlashSaleItem item = cachedItem != null ? JsonUtil.fromJsonToFlashSaleItem(cachedItem) : null;
+            if (item == null) {
+                return new FlashSaleOrderNotification(FlashSaleOrderStatus.ITEM_NOT_FOUND,
+                        "Item not found - FlashSaleId: " + flashSaleId);
+            }
 
-        //check with redis and pre-deduct stock
+            //check if not in sale time window
+            if (isItemNotInSaleWindow(item)) {
+                return new FlashSaleOrderNotification(FlashSaleOrderStatus.NOT_ON_SALE,
+                        "Item not on sale - FlashSaleId: " + flashSaleId);
+            }
 
-        //send flash sale order event to kafka
-        flashSaleOrderEventProducer.sendToOrder(convertToFlashSaleOrderEvent(item, userId));
+            //check if already placed order successfully on the same flash sale item
+            Long orderCount = redisTemplate.opsForHash().increment(orderKey, userIdString + ":" + flashSaleIdString, 1);
+            if (orderCount > 1) {
+                return new FlashSaleOrderNotification(FlashSaleOrderStatus.EXCEED_PURCHASE_LIMIT,
+                        "User has reached purchase limit of FlashSaleId: " + flashSaleId);
+            }
 
-        return new FlashSaleOrderNotification(Status.PENDING, "Hang tight! We're securing your flash sale item...");
+            //check with redis and pre-deduct stock
+            Long remain = redisTemplate.opsForHash().increment(stockKey, flashSaleIdString, -1);
+            if (remain < 0)  {
+                //rewind order placement count
+                redisTemplate.opsForHash().increment(orderKey, userIdString + ":" + flashSaleIdString, -1);
+                return new FlashSaleOrderNotification(FlashSaleOrderStatus.INSUFFICIENT_STOCK,
+                        "Item is out of stock - FlashSaleId: " + flashSaleId);
+            }
+
+            //send flash sale order event to kafka
+            flashSaleOrderEventProducer.sendToOrder(convertToFlashSaleOrderEvent(item, userId));
+        } catch (Exception e) {
+            return new FlashSaleOrderNotification(FlashSaleOrderStatus.FAILED,
+                    "Please try again later! Error: " + e.getMessage());
+        }
+
+        return new FlashSaleOrderNotification(FlashSaleOrderStatus.PENDING,
+                "Confirming order for FlashSaleId: " + flashSaleId);
     }
 
     private boolean isItemNotInSaleWindow(FlashSaleItem item) {

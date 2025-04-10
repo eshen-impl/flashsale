@@ -1,6 +1,6 @@
 package com.chuwa.flashsaleservice.payload;
 
-import com.chuwa.flashsaleservice.enums.Status;
+import com.chuwa.flashsaleservice.enums.FlashSaleOrderStatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -11,6 +11,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class FlashSaleOrderResponseEvent {
-    private Status status;
+    private FlashSaleOrderStatus status;
     private Long orderId;
+    private String message;
 }

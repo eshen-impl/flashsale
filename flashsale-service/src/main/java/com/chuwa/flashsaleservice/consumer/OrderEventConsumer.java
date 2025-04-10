@@ -23,7 +23,7 @@ public class OrderEventConsumer {
         try {
             log.info("Flashsale Service received order creation event: {}", event);
 //            orderService.processPaymentResponse(event); hand to websocket
-            log.info("Order Status: {}, Order Id: {} ", event.getStatus(), event.getOrderId());
+            log.info("Order FlashSaleOrderStatus: {}, Order Id: {}, Message: {} ", event.getStatus(), event.getOrderId(), event.getMessage());
         } catch (Exception e) {
             log.error("Error deserializing or processing order creation response: {}", e.getMessage(), e);
         }

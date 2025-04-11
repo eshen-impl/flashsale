@@ -1,4 +1,4 @@
-package com.chuwa.accountservice.util;
+package com.chuwa.securitylib;
 
 import java.util.Base64;
 import java.nio.ByteBuffer;

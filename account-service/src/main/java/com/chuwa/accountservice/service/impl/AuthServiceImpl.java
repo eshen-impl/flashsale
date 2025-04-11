@@ -13,7 +13,7 @@ import com.chuwa.accountservice.payload.SignUpRequestDTO;
 import com.chuwa.accountservice.service.AuthService;
 import com.chuwa.securitylib.RedisUserSessionService;
 import com.chuwa.securitylib.JwtUtil;
-import com.chuwa.accountservice.util.UUIDUtil;
+import com.chuwa.securitylib.UUIDUtil;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;

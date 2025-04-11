@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Flash Sale Order Test</title>
+</head>
+<body>
+<button onclick="placeOrder()">Place Order</button>
+
+<script>
+    const token = 'eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJFREFCc3JCZFRTZWItM1Y1ZUpOWVdnIiwiaWF0IjoxNzQ0MzQzMDczLCJleHAiOjE3NDQ0Mjk0NzN9.GVGm_vwLm3L3t98JvEFXmEyRl1OpeXpxTJ5HY1iEG4-TorC89vNAE76lfuzBpoBI';
+    const flashSaleId = '1908913795544256512';
+
+    function placeOrder() {
+        fetch(`http://localhost:9000/api/v1/flashsale/submit/${flashSaleId}`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        })
+            .then(res => res.json())
+            .then(data => {
+                console.log('Order response:', data);
+                if (data.flashSaleOrderStatus === 'PENDING') {
+                    setupWebSocket();
+                } else {
+                    alert("Immediate result: " + data.message);
+                }
+            });
+    }
+
+    function setupWebSocket() {
+        const socket = new WebSocket(`ws://localhost:9000/ws/flashsale/order-updates?token=${token}`);
+
+        socket.onopen = () => {
+            console.log("WebSocket connected");
+        };
+
+        socket.onmessage = (event) => {
+            const update = JSON.parse(event.data);
+            alert("Order Status: " + update.status + "\n"
+                + "Order ID: " + update.orderId + "\n"
+                + "Error: " + update.message + "\n"
+                + "User ID: " + update.userId);
+            socket.close(); // Close after one-time use
+        };
+
+        socket.onerror = (error) => {
+            console.error("WebSocket error", error);
+        };
+
+        socket.onclose = (event) => {
+            console.log("WebSocket closed", event);
+        };
+    }
+</script>
+</body>
+</html>

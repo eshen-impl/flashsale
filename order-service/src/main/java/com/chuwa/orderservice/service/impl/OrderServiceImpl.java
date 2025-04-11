@@ -218,8 +218,8 @@ public class OrderServiceImpl implements OrderService {
         return orders.map(this::convertToDTO);
     }
 
-    public OrderDTO getOrderById(Long orderId) {
-        return orderRepository.findByOrderId(orderId)
+    public OrderDTO getOrderById(Long orderId, UUID userId) {
+        return orderRepository.findOrderByOrderIdAndUserId(orderId, userId)
                 .map(this::convertToDTO)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
     }

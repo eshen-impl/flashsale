@@ -68,8 +68,9 @@ public class OrderController {
     @GetMapping("/{orderId}")
     @Operation(summary = "Get a specific order and its details for the current user.",
             description =  "Required to be authenticated (have signed in) ")
-    public ResponseEntity<OrderDTO> getOrder(@PathVariable("orderId") Long orderId) {
-        return ResponseEntity.ok(orderService.getOrderById(orderId));
+    public ResponseEntity<OrderDTO> getOrder(@PathVariable("orderId") Long orderId,  @RequestHeader("X-User-Id") String userIdString) {
+        UUID userId = UUID.fromString(userIdString);
+        return ResponseEntity.ok(orderService.getOrderById(orderId, userId));
     }
 }
 

@@ -18,7 +18,7 @@ public interface OrderService {
     OrderDTO cancelOrder(Long orderId);
     OrderDTO refundOrder(RefundRequestDTO refundRequestDTO);
     Page<OrderDTO> getUserOrders(int page, int size, UUID userId);
-    OrderDTO getOrderById(Long orderId);
+    OrderDTO getOrderById(Long orderId, UUID userId);
     void processPaymentResponse(PaymentEvent response);
     void processShippingResponse(ShippingEvent event);
 

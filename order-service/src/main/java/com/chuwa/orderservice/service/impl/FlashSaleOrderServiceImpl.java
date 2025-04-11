@@ -41,7 +41,7 @@ public class FlashSaleOrderServiceImpl implements FlashSaleOrderService {
 
     @Override
     @Transactional
-//    @CircuitBreaker(name = "createFlashSaleOrder", fallbackMethod = "fallbackForCreateFlashSaleOrder")
+    @CircuitBreaker(name = "createFlashSaleOrder", fallbackMethod = "fallbackForCreateFlashSaleOrder")
     public void createOrder(FlashSaleOrderRequestEvent flashSaleOrderRequestEvent) {
         if (!itemClient.decrementStock(flashSaleOrderRequestEvent.getFlashSaleId())) {
 
@@ -52,7 +52,8 @@ public class FlashSaleOrderServiceImpl implements FlashSaleOrderService {
                 -1);
 
         flashSaleOrderEventProducer.sendToFlashSale(
-                new FlashSaleOrderResponseEvent(FlashSaleOrderStatus.INSUFFICIENT_STOCK, null, "out of stock"));
+                new FlashSaleOrderResponseEvent(FlashSaleOrderStatus.INSUFFICIENT_STOCK,
+                        null, "out of stock", flashSaleOrderRequestEvent.getUserId()));
 
         } else {
             Order order = new Order();
@@ -71,7 +72,8 @@ public class FlashSaleOrderServiceImpl implements FlashSaleOrderService {
             Order savedOrder = orderRepository.save(order);
 
             flashSaleOrderEventProducer.sendToFlashSale(
-                    new FlashSaleOrderResponseEvent(FlashSaleOrderStatus.CONFIRMED, savedOrder.getOrderId(), ""));
+                    new FlashSaleOrderResponseEvent(FlashSaleOrderStatus.CONFIRMED,
+                            savedOrder.getOrderId(), "", flashSaleOrderRequestEvent.getUserId()));
         }
 
     }
@@ -88,7 +90,8 @@ public class FlashSaleOrderServiceImpl implements FlashSaleOrderService {
                 -1);
 
         flashSaleOrderEventProducer.sendToFlashSale(
-                new FlashSaleOrderResponseEvent(FlashSaleOrderStatus.FAILED, null, throwable.getMessage()));
+                new FlashSaleOrderResponseEvent(FlashSaleOrderStatus.FAILED,
+                        null, throwable.getMessage(), flashSaleOrderRequestEvent.getUserId()));
 
     }
 }

@@ -26,7 +26,6 @@ public class JwtAuthManager implements ReactiveAuthenticationManager {
         String token = authentication.getCredentials().toString();
 
         try {
-            JwtUtil.validateToken(token); // Validate JWT
             String encodedUserId = JwtUtil.getUserIdFromToken(token);
             log.info("encodedUserId: " + encodedUserId);
 

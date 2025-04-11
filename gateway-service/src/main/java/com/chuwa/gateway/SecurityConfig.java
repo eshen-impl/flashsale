@@ -29,6 +29,8 @@ JwtAuthConverter jwtAuthConverter) {
                         .pathMatchers(HttpMethod.POST,"/api/v1/auth/sign-in", "/api/v1/auth/sign-up").permitAll() // Public endpoints
                         .pathMatchers(HttpMethod.GET, "/api/v1/admin/**", "/api/v1/items/mgmt/**").hasRole("ADMIN") // Admin-only access
                         .pathMatchers(HttpMethod.GET, "/api/v1/items/**").permitAll()
+                        .pathMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .pathMatchers("/ws/flashsale/**").permitAll()
                         .anyExchange().authenticated() // Protect all other endpoints
                 )
                 .addFilterAt(jwtFilter, SecurityWebFiltersOrder.AUTHENTICATION)

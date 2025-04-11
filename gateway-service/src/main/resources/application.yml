@@ -31,8 +31,21 @@ spring:
         - id: FLASHSALE-SERVICE
           uri: lb://FLASHSALE-SERVICE
           predicates:
-            - Path=/api/v1/flashsale/**
+            - Path=/api/v1/flashsale/**, /ws/flashsale/**
 
+      globalcors:
+        add-to-simple-url-handler-mapping: true
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins: "http://localhost:63342"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowedHeaders: "*"
+            allowCredentials: true
 
 
 eureka:
@@ -47,3 +60,5 @@ logging:
   level:
     org.springframework.cloud.gateway: DEBUG
     org.springframework.cloud.gateway.route.RouteDefinitionRouteLocator: WARN
+    org.springframework.web.cors: DEBUG
+    org.springframework.web.filter.CorsFilter: DEBUG

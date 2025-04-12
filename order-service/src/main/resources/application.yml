@@ -58,14 +58,14 @@ resilience4j.circuitbreaker:
         - com.chuwa.orderservice.exception.EmptyCartException
         - com.chuwa.orderservice.exception.ResourceNotFoundException
         - com.chuwa.orderservice.exception.InsufficientStockException
-#    createFlashSaleOrder:
-#      failureRateThreshold: 50  # Open circuit when 50% of requests fail
-#      slowCallRateThreshold: 60  # Open circuit if 60% of calls are slow
-#      slowCallDurationThreshold: 2s  # Calls taking more than 2 seconds are considered slow
-#      waitDurationInOpenState: 5s  # Time before Circuit Breaker moves to half-open state
-#      permittedNumberOfCallsInHalfOpenState: 3  # Number of calls allowed in half-open state
-#      maxWaitDurationInHalfOpenState: 2s  # Wait time in half-open state
-#      slidingWindowType: COUNT_BASED  # COUNT_BASED or TIME_BASED
-#      slidingWindowSize: 10  # Number of calls to monitor for Circuit Breaker state
+    createFlashSaleOrder:
+      failureRateThreshold: 50  # Open circuit when 50% of requests fail
+      slowCallRateThreshold: 60  # Open circuit if 60% of calls are slow
+      slowCallDurationThreshold: 2s  # Calls taking more than 2 seconds are considered slow
+      waitDurationInOpenState: 5s  # Time before Circuit Breaker moves to half-open state
+      permittedNumberOfCallsInHalfOpenState: 3  # Number of calls allowed in half-open state
+      maxWaitDurationInHalfOpenState: 2s  # Wait time in half-open state
+      slidingWindowType: COUNT_BASED  # COUNT_BASED or TIME_BASED
+      slidingWindowSize: 10  # Number of calls to monitor for Circuit Breaker state
 #      ignoreExceptions:
 #        - com.chuwa.orderservice.exception.InsufficientStockException

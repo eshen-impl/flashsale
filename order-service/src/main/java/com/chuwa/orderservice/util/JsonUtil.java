@@ -1,5 +1,6 @@
 package com.chuwa.orderservice.util;
 import com.chuwa.orderservice.payload.CartItem;
+import com.chuwa.orderservice.payload.DelayedOrderEntry;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -24,6 +25,14 @@ public class JsonUtil {
             });
         } catch (IOException e) {
             throw new RuntimeException("Error deserializing JSON to CartItem list", e);
+        }
+    }
+
+    public static DelayedOrderEntry fromJsonToDelayedOrderEntry(String jsonString) {
+        try {
+            return objectMapper.readValue(jsonString, DelayedOrderEntry.class);
+        } catch (Exception e) {
+            throw new RuntimeException("Error deserializing DelayedOrderEntry", e);
         }
     }
 

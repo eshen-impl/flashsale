@@ -2,10 +2,8 @@ package com.chuwa.orderservice.client;
 
 import com.chuwa.orderservice.config.NoAuthFeignConfig;
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
@@ -18,5 +16,11 @@ public interface ItemClient {
 
     @PutMapping("/mgmt/flashsale/{id}/decrement-stock")
     Boolean decrementStock(@PathVariable("id") Long id);
+
+    @GetMapping("/mgmt/flashsale/{id}/stock")
+    Integer getStock(@PathVariable("id") Long id);
+
+    @PutMapping("/mgmt/flashsale/{id}/increment-stock")
+    Boolean incrementStock(@PathVariable("id") Long id);
 }
 

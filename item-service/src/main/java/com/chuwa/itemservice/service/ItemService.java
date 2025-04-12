@@ -18,5 +18,9 @@ public interface ItemService {
 
     Boolean tryDecrementStock(Long flashSaleId);
 
+    Integer getItemStock(Long id);
+
+    Boolean tryIncrementStock(Long id);
+
 //    Map<String, Integer> getAvailableUnits(List<String> itemIds);
 }

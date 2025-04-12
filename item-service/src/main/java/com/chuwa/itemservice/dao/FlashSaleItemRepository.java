@@ -19,4 +19,10 @@ public interface FlashSaleItemRepository extends JpaRepository<FlashSaleItem, Lo
     @Query("UPDATE FlashSaleItem f SET f.stock = f.stock - 1 WHERE f.flashSaleId = :flashSaleId AND f.stock > 0")
     int decrementStock(@Param("flashSaleId") Long flashSaleId);
 
+    @Query("SELECT f.stock FROM FlashSaleItem f WHERE f.flashSaleId = :flashSaleId")
+    Integer findStockByItemId(@Param("flashSaleId") Long flashSaleId);
+
+    @Modifying
+    @Query("UPDATE FlashSaleItem f SET f.stock = f.stock + 1 WHERE f.flashSaleId = :flashSaleId")
+    int incrementStock(@Param("flashSaleId") Long flashSaleId);
 }

@@ -106,4 +106,16 @@ public class ItemController {
         Boolean success = itemService.tryDecrementStock(id);
         return ResponseEntity.ok(success);
     }
+
+    @PutMapping("/mgmt/flashsale/{id}/increment-stock")
+    public ResponseEntity<Boolean> incrementStock(@PathVariable("id") Long id) {
+        Boolean success = itemService.tryIncrementStock(id);
+        return ResponseEntity.ok(success);
+    }
+
+    @GetMapping("/mgmt/flashsale/{id}/stock")
+    public ResponseEntity<Integer> getStock(@PathVariable("id") Long id) {
+        Integer stock = itemService.getItemStock(id);
+        return ResponseEntity.ok(stock);
+    }
 }

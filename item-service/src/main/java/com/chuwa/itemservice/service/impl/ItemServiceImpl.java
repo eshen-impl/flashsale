@@ -98,9 +98,21 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public Boolean tryDecrementStock(Long flashSaleId) {
         return flashSaleItemRepository.decrementStock(flashSaleId) > 0;
+    }
+
+    @Override
+    public Integer getItemStock(Long id) {
+        Integer stock = flashSaleItemRepository.findStockByItemId(id);
+        return stock != null ? stock : 0;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Boolean tryIncrementStock(Long flashSaleId) {
+        return flashSaleItemRepository.incrementStock(flashSaleId) > 0;
     }
 
     private List<FlashSaleItemDTO> getItemsFromCache(LocalDate today) {

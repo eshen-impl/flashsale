@@ -65,5 +65,8 @@ public class FlashSaleItem {
     @Column(nullable = false)
     private Integer saleEndTime;
 
+    @Column(nullable = false)
+    private Integer purchaseLimit;
+
 }
 

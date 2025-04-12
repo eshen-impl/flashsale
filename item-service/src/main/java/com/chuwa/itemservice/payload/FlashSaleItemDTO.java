@@ -26,5 +26,6 @@ public class FlashSaleItemDTO {
     private LocalDate saleDate;
     private Integer saleStartTime;
     private Integer saleEndTime;
+    private Integer purchaseLimit;
 
 }

@@ -27,5 +27,6 @@ public class FlashSaleItem {
     private LocalDate saleDate;
     private Integer saleStartTime;
     private Integer saleEndTime;
+    private Integer purchaseLimit;
 
 }

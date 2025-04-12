@@ -23,7 +23,6 @@ import java.util.UUID;
 @Service
 public class FlashSaleOrderServiceImpl implements FlashSaleOrderService {
     private final StringRedisTemplate redisTemplate;
-    private final ObjectMapper objectMapper;
     private final FlashSaleOrderEventProducer flashSaleOrderEventProducer;
     private static final String FLASH_SALE_ITEM_INFO_KEY = "flashsale:item:info:";
     private static final String FLASH_SALE_ITEM_STOCK_KEY = "flashsale:item:stock:";
@@ -32,7 +31,6 @@ public class FlashSaleOrderServiceImpl implements FlashSaleOrderService {
 
     public FlashSaleOrderServiceImpl(StringRedisTemplate redisTemplate, ObjectMapper objectMapper, FlashSaleOrderEventProducer flashSaleOrderEventProducer) {
         this.redisTemplate = redisTemplate;
-        this.objectMapper = objectMapper;
         this.flashSaleOrderEventProducer = flashSaleOrderEventProducer;
     }
 
@@ -67,11 +65,13 @@ public class FlashSaleOrderServiceImpl implements FlashSaleOrderService {
                         "Item not on sale - FlashSaleId: " + flashSaleId);
             }
 
-            //check if already placed order successfully on the same flash sale item
+            //check if successfully purchased number exceeds allowed purchase limit on the same flash sale item
             Long orderCount = redisTemplate.opsForHash().increment(orderKey, userIdString + ":" + flashSaleIdString, 1);
-            if (orderCount > 1) {
+            if (orderCount > item.getPurchaseLimit()) {
+                redisTemplate.opsForHash().increment(orderKey, userIdString + ":" + flashSaleIdString, -1);
                 return new FlashSaleOrderNotification(FlashSaleOrderStatus.EXCEED_PURCHASE_LIMIT,
-                        "User has reached purchase limit of FlashSaleId: " + flashSaleId);
+                        "User has reached purchase limit of FlashSaleId: " + flashSaleId
+                                + ", purchase limit: " + item.getPurchaseLimit());
             }
 
             //check with redis and pre-deduct stock

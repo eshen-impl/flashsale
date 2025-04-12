@@ -38,7 +38,7 @@ services:
       - ./docker-data/token:/app/output
     environment:
       - SERVER_PORT=8080
-      - SPRING_DATASOURCE_URL=jdbc:mysql://host.docker.internal:3306/emart_account?useSSL=false&serverTimezone=UTC
+      - SPRING_DATASOURCE_URL=jdbc:mysql://host.docker.internal:3306/emart_account?useSSL=false&serverTimezone=America/Los_Angeles
       - SPRING_DATASOURCE_USERNAME=root
       - SPRING_DATASOURCE_PASSWORD=ying1234
       - SPRING_DATA_REDIS_HOST=host.docker.internal
@@ -57,7 +57,7 @@ services:
 #      - "8081:8081"
     environment:
       - SERVER_PORT=8081
-      - SPRING_DATASOURCE_URL=jdbc:mysql://host.docker.internal:3306/emart_item?useSSL=false&serverTimezone=UTC
+      - SPRING_DATASOURCE_URL=jdbc:mysql://host.docker.internal:3306/emart_item?useSSL=false&serverTimezone=America/Los_Angeles
       - SPRING_DATASOURCE_USERNAME=root
       - SPRING_DATASOURCE_PASSWORD=ying1234
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
@@ -94,7 +94,7 @@ services:
     environment:
       - SERVER_PORT=8083
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
-      - SPRING_DATASOURCE_URL=jdbc:mysql://host.docker.internal:3306/emart_order?useSSL=false&serverTimezone=UTC
+      - SPRING_DATASOURCE_URL=jdbc:mysql://host.docker.internal:3306/emart_order?useSSL=false&serverTimezone=America/Los_Angeles
       - SPRING_DATASOURCE_USERNAME=root
       - SPRING_DATASOURCE_PASSWORD=ying1234
 #      - SPRING_CASSANDRA_CONTACT_POINTS=cassandra
@@ -125,7 +125,7 @@ services:
 #      - "8084:8084"
 #    environment:
 #      - SERVER_PORT=8084
-#      - SPRING_DATASOURCE_URL=jdbc:mysql://database-1.chs06sag2xwn.us-west-2.rds.amazonaws.com:3306/emart_payment?useSSL=false&serverTimezone=UTC
+#      - SPRING_DATASOURCE_URL=jdbc:mysql://database-1.chs06sag2xwn.us-west-2.rds.amazonaws.com:3306/emart_payment?useSSL=false&serverTimezone=America/Los_Angeles
 #      - SPRING_DATASOURCE_USERNAME=admin
 #      - SPRING_DATASOURCE_PASSWORD=ying1234
 #      - SPRING_DATA_REDIS_HOST=redis
